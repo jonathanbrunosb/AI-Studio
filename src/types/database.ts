@@ -86,6 +86,39 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_settings: {
+        Row: {
+          accent_color: string
+          font_family: string
+          footer_text: string
+          id: boolean
+          logo_url: string
+          organization: string
+          primary_color: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color: string
+          font_family?: string
+          footer_text?: string
+          id?: boolean
+          logo_url?: string
+          organization: string
+          primary_color: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          font_family?: string
+          footer_text?: string
+          id?: boolean
+          logo_url?: string
+          organization?: string
+          primary_color?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_versions: {
         Row: {
           content_id: string
@@ -131,10 +164,13 @@ export type Database = {
       contents: {
         Row: {
           category: string
+          collection_name: string
           created_at: string
           created_by: string
           description: string | null
+          editorial_details: Json
           id: string
+          layout_snapshot: Json
           reference_date: string | null
           source_name: string | null
           source_url: string | null
@@ -146,10 +182,13 @@ export type Database = {
         }
         Insert: {
           category: string
+          collection_name?: string
           created_at?: string
           created_by: string
           description?: string | null
+          editorial_details?: Json
           id?: string
+          layout_snapshot?: Json
           reference_date?: string | null
           source_name?: string | null
           source_url?: string | null
@@ -161,10 +200,13 @@ export type Database = {
         }
         Update: {
           category?: string
+          collection_name?: string
           created_at?: string
           created_by?: string
           description?: string | null
+          editorial_details?: Json
           id?: string
+          layout_snapshot?: Json
           reference_date?: string | null
           source_name?: string | null
           source_url?: string | null
@@ -352,6 +394,7 @@ export type Database = {
       }
       templates: {
         Row: {
+          category: string | null
           configuration: Json
           created_at: string
           created_by: string | null
@@ -359,9 +402,11 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          slug: string | null
           updated_at: string
         }
         Insert: {
+          category?: string | null
           configuration?: Json
           created_at?: string
           created_by?: string | null
@@ -369,9 +414,11 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          slug?: string | null
           updated_at?: string
         }
         Update: {
+          category?: string | null
           configuration?: Json
           created_at?: string
           created_by?: string | null
@@ -379,6 +426,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          slug?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -435,7 +483,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      duplicate_content: { Args: { source_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

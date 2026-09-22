@@ -1,5 +1,34 @@
-import { Building2, CalendarDays, Maximize2 } from "lucide-react";
+/* eslint-disable @next/next/no-img-element */
+import { Building2 } from "lucide-react";
+import { defaultBranding, defaultLayouts, type Branding, type EditorialDetails, type EditorialLayout } from "@/lib/content/editorial";
 
-export function CreativeCanvas({ title, subtitle, description }: { title?: string | null; subtitle?: string | null; description?: string | null }) {
-  return <div className="flex min-h-[620px] flex-col bg-slate-100/70 p-4 md:p-6"><div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold text-slate-500">Pré-visualização · 1080 × 1080</span><button className="grid size-8 place-items-center rounded-lg bg-white text-slate-500 shadow-sm"><Maximize2 size={15} /></button></div><div className="m-auto w-full max-w-[540px] overflow-hidden rounded-[20px] bg-white shadow-2xl shadow-slate-300/60"><div className="h-2 bg-blue-700" /><div className="flex items-center justify-between px-7 py-5"><div className="flex items-center gap-2 text-sm font-bold text-blue-950"><span className="grid size-8 place-items-center rounded-lg bg-blue-700 text-white"><Building2 size={16} /></span>Contabilidade</div><span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">Rascunho</span></div><div className="relative mx-7 h-48 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c315a] via-[#185b96] to-[#65b2e8]"><div className="absolute -right-10 -top-16 size-48 rounded-full border-[28px] border-white/10" /><div className="absolute bottom-5 left-5 grid size-11 place-items-center rounded-xl bg-white/15 text-white backdrop-blur"><CalendarDays size={22} /></div></div><div className="px-7 pb-8 pt-6"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-blue-700">Conteúdo editorial</p><h3 className="mt-2 text-3xl font-bold leading-[1.05] text-blue-950">{title || "Título do novo conteúdo"}</h3><p className="mt-3 text-base font-semibold text-slate-500">{subtitle || "O subtítulo aparecerá nesta área da peça."}</p><div className="my-5 h-px bg-slate-200" /><p className="text-sm leading-6 text-slate-600">{description || "Adicione uma descrição para visualizar o texto principal do conteúdo."}</p><div className="mt-6 flex items-center justify-between"><span className="text-xs font-bold text-blue-800">Gerência de Contabilidade</span><span className="text-[10px] text-slate-400">AI STUDIO</span></div></div></div></div>;
+export function CreativeCanvas({ title, subtitle, description, details = {}, layout = defaultLayouts.internal_communication, brand = defaultBranding, compact = false }: {
+  title?: string | null; subtitle?: string | null; description?: string | null;
+  details?: EditorialDetails; layout?: EditorialLayout; brand?: Branding; compact?: boolean;
+}) {
+  return <div className={compact ? "bg-slate-100 p-4" : "rounded-xl bg-slate-100 p-4 md:p-6"}>
+    <p className="mb-3 text-xs font-semibold text-slate-500">{layout.width} × {layout.height} px · Prévia de composição</p>
+    <article className="mx-auto flex w-full max-w-xl flex-col overflow-hidden rounded-lg bg-white shadow-lg" style={{ aspectRatio: `${layout.width} / ${layout.height}`, fontFamily: `${brand.font_family}, "Segoe UI", Arial, sans-serif`, textAlign: layout.alignment, borderTop: `6px solid ${brand.accent_color}` }}>
+      <header className="flex items-center gap-2 p-4 text-xs font-bold" style={{ color: brand.primary_color }}>
+        {brand.logo_url ? <img src={brand.logo_url} referrerPolicy="no-referrer" alt={brand.organization} className="h-8 max-w-28 object-contain" /> : <Building2 size={20} />}
+        {brand.organization}
+      </header>
+      <div className={layout.layout === "system" ? "grid sm:grid-cols-2" : ""}>
+        {layout.show_image && <div className={layout.layout === "campaign" ? "relative h-52 overflow-hidden" : "relative h-36 overflow-hidden"} style={{ background: `linear-gradient(130deg,${brand.primary_color},${brand.accent_color})` }}>
+          {details.image_url ? <img src={details.image_url} referrerPolicy="no-referrer" alt={details.image_alt || "Imagem de apoio"} className="h-full w-full object-cover" /> : <><div className="absolute -right-8 -top-10 size-48 rounded-full border-[28px] border-white/10" /><span className="absolute bottom-4 left-5 text-xs font-bold uppercase tracking-widest text-white/80">{layout.layout === "newsletter" ? "Em pauta" : layout.layout === "system" ? "Tecnologia e processos" : "Comunicação Contábil"}</span></>}
+        </div>}
+        <div className={compact ? "p-4" : "p-6"}>
+          <h3 className={compact ? "text-lg font-bold leading-tight" : "text-2xl font-bold leading-tight"} style={{ color: brand.primary_color }}>{title || "Título do material"}</h3>
+          {subtitle && <p className="mt-3 font-semibold text-slate-500">{subtitle}</p>}
+          <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-600">{description || "O conteúdo editorial será apresentado nesta área."}</p>
+          {details.solution_name && <p className="mt-4 text-sm font-bold" style={{ color: brand.accent_color }}>{details.solution_name}</p>}
+          {details.functionality && <p className="mt-2 text-sm text-slate-600">{details.functionality}</p>}
+          {details.access_url && <p className="mt-3 break-all text-xs underline" style={{ color: brand.accent_color }}>{details.access_url}</p>}
+          {details.audience && <p className="mt-3 text-xs text-slate-500">Para: {details.audience}</p>}
+          {details.call_to_action && <p className="mt-5 rounded px-4 py-3 text-sm font-bold text-white" style={{ backgroundColor: brand.accent_color }}>{details.call_to_action}</p>}
+        </div>
+      </div>
+      {layout.show_footer && <footer className="mt-auto border-t border-slate-100 p-4 text-[11px] font-semibold" style={{ color: brand.primary_color }}>{brand.footer_text}</footer>}
+    </article>
+  </div>;
 }

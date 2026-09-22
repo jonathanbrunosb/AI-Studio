@@ -24,7 +24,7 @@ export function Topbar({ onOpenMobile, user }: { onOpenMobile: () => void; user:
           <Search size={17} /><input aria-label="Buscar conteúdos" placeholder="Buscar no AI Studio..." className="w-full bg-transparent text-sm text-slate-700 outline-none" />
           <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">⌘ K</kbd>
         </label>
-        <Link href="/studio" className="primary-button h-10 px-3 md:px-4"><Plus size={17} /><span className="hidden sm:inline">Criar conteúdo</span></Link>
+        {user.roles.some((role) => role === "admin" || role === "editor") && <Link href="/studio" aria-label="Criar conteúdo" className="primary-button h-10 px-3 md:px-4"><Plus size={17} /><span className="hidden sm:inline">Criar conteúdo</span></Link>}
         <button aria-label="Notificações" className="relative grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"><Bell size={18} /><span className="absolute right-2 top-2 size-2 rounded-full border-2 border-white bg-amber-500" /></button>
         <div className="flex items-center gap-2 rounded-xl pl-1 text-left">
           <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-500 text-sm font-bold text-white">{initials || "AI"}</span>

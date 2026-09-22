@@ -1,25 +1,47 @@
-import { ChevronLeft, Save } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
-import { SectionCard } from "@/components/shared/section-card";
 import { StudioForm } from "@/components/studio/studio-form";
-import { CreativeCanvas } from "@/components/studio/creative-canvas";
-import { ImageGeneratorMock } from "@/components/studio/image-generator-mock";
+import { CategoryPicker } from "@/components/studio/category-picker";
 import { requireUser } from "@/lib/auth/authorization";
+import { getBranding } from "@/lib/content/branding-service";
+import { categories } from "@/lib/content/editorial";
+import type { ContentCategory } from "@/types/content";
+import type { Tables } from "@/types/database";
 
-export default async function StudioPage({ searchParams }: { searchParams: Promise<{ id?: string; saved?: string; error?: string }> }) {
+export default async function StudioPage({ searchParams }: { searchParams: Promise<{ id?: string; category?: string; template?: string; saved?: string; copied?: string }> }) {
   const params = await searchParams;
-  const { supabase, roles } = await requireUser();
-  if (!roles.some((role) => role === "admin" || role === "editor")) return <AccessMessage />;
-
-  let content = null;
+  const { supabase, roles, user } = await requireUser();
+  const canCreate = roles.some((r) => r === "admin" || r === "editor");
+  let content: Tables<"contents"> | null = null;
+  let template: Tables<"templates"> | null = null;
   if (params.id) {
-    const { data, error } = await supabase.from("contents").select("*").eq("id", params.id).maybeSingle();
-    if (error || !data) notFound();
-    content = data;
+    const result = await supabase.from("contents").select("*").eq("id", params.id).maybeSingle();
+    if (result.error) throw new Error("Não foi possível consultar o conteúdo.");
+    if (!result.data) notFound();
+    content = result.data;
   }
-
-  return <div><PageHeader eyebrow="Workspace criativo" title={content ? "Editar conteúdo" : "Estúdio de Criação"} description="Estruture o conteúdo, acompanhe a peça visual e salve um rascunho persistido." actions={<><a href="/dashboard" className="secondary-button"><ChevronLeft size={16} />Voltar</a><button form="studio-content-form" type="submit" className="primary-button"><Save size={16} />Salvar rascunho</button></>} />{params.saved && <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm font-semibold text-blue-800">Rascunho salvo com sucesso.</div>}{params.error && <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-700">{params.error}</div>}<div className="grid min-w-0 items-start gap-5 2xl:grid-cols-[minmax(275px,.8fr)_minmax(440px,1.5fr)_minmax(270px,.8fr)]"><SectionCard title="Conteúdo" description="Informações editoriais persistidas"><StudioForm content={content} /></SectionCard><SectionCard title="Peça em construção" description="Visualização aproximada do resultado"><CreativeCanvas title={content?.title} subtitle={content?.subtitle} description={content?.description} /></SectionCard><SectionCard title="Imagem de apoio" description="Configuração reservada para sprint futura"><ImageGeneratorMock /></SectionCard></div></div>;
+  const templateId = content?.template_id ?? params.template;
+  if (templateId) {
+    const result = await supabase.from("templates").select("*").eq("id", templateId).maybeSingle();
+    if (result.error) throw new Error("Não foi possível consultar o modelo.");
+    if (!result.data && !content) notFound();
+    template = result.data;
+  }
+  const category = content?.category ?? template?.category ?? params.category;
+  const validCategory = categories.includes(category as ContentCategory);
+  if (!content && !template && validCategory) {
+    const result = await supabase.from("templates").select("*").eq("category", category!).eq("is_active", true).order("created_at").limit(1).maybeSingle();
+    if (result.error) throw new Error("Não foi possível carregar o modelo corporativo.");
+    template = result.data;
+  }
+  if (!content && !canCreate) return <div className="surface-card p-8">Seu perfil permite consultar materiais. A criação exige acesso editorial.</div>;
+  if (!content && !validCategory) return <div><PageHeader eyebrow="Nova criação" title="O que você deseja comunicar?" description="Escolha uma categoria para começar com os campos e a composição adequados." /><CategoryPicker /></div>;
+  const readOnly = Boolean(content && (!canCreate || !["draft", "changes_requested"].includes(content.status) || (!roles.includes("admin") && content.created_by !== user.id)));
+  const brand = await getBranding(supabase);
+  return <div><PageHeader eyebrow="Produção editorial" title={readOnly ? "Consultar material" : content ? "Editar material" : "Novo material"} description="Organize o conteúdo e personalize sua composição com a identidade da Contabilidade." actions={<Link className="secondary-button" href="/biblioteca">Voltar à biblioteca</Link>} />
+    {(params.saved || params.copied) && <p role="status" className="mb-5 rounded-xl bg-blue-50 p-4 text-sm text-blue-800">{params.copied ? "Cópia independente criada como rascunho." : "Material salvo com sucesso."}</p>}
+    {readOnly && <p className="mb-5 rounded-xl bg-slate-100 p-4 text-sm text-slate-600">Visualização somente para leitura conforme seu perfil e a etapa editorial.</p>}
+    <StudioForm key={content?.id ?? template?.id ?? category} content={content} category={category as ContentCategory} template={template} brand={brand} readOnly={readOnly} />
+  </div>;
 }
-
-function AccessMessage() { return <div className="surface-card p-10 text-center"><h2 className="text-xl font-bold text-slate-900">Acesso editorial necessário</h2><p className="mt-2 text-sm text-slate-500">Seu perfil pode consultar conteúdos, mas não criar ou editar rascunhos.</p></div>; }

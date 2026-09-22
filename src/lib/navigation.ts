@@ -10,5 +10,5 @@ export const navigationItems = [
 ] as const;
 
 export function getPageTitle(pathname: string) {
-  return navigationItems.find((item) => item.href === pathname)?.label ?? "AI Studio";
+  return pathname === "/administracao/identidade" ? "Identidade visual" : navigationItems.find((item) => item.href === pathname)?.label ?? "AI Studio";
 }

@@ -9,10 +9,10 @@ import { requireUser } from "@/lib/auth/authorization";
 import { getDashboardData } from "@/lib/content/content-service";
 
 const actions = [
-  { title: "Novo Comunicado", description: "Crie uma comunicação interna objetiva.", icon: Megaphone, tone: "blue" as const },
-  { title: "Nova Newsletter", description: "Organize notícias em uma nova edição.", icon: Newspaper, tone: "violet" as const },
-  { title: "Divulgação de Sistema", description: "Apresente mudanças e novas rotinas.", icon: MonitorUp, tone: "amber" as const },
-  { title: "Nova Campanha", description: "Estruture uma campanha interna.", icon: Sparkles, tone: "blue" as const },
+  { title: "Novo Comunicado", description: "Crie uma comunicação interna objetiva.", href: "/studio?category=internal_communication", icon: Megaphone, tone: "blue" as const },
+  { title: "Nova Newsletter", description: "Organize notícias em uma nova edição.", href: "/studio?category=accounting_newsletter", icon: Newspaper, tone: "violet" as const },
+  { title: "Divulgação de Sistema", description: "Apresente mudanças e novas rotinas.", href: "/studio?category=system_announcement", icon: MonitorUp, tone: "amber" as const },
+  { title: "Nova Campanha", description: "Estruture uma campanha interna.", href: "/studio?category=internal_campaign", icon: Sparkles, tone: "blue" as const },
   { title: "Ver Biblioteca", description: "Consulte conteúdos e materiais publicados.", icon: BookOpen, href: "/biblioteca", tone: "slate" as const },
   { title: "Revisar Aprovações", description: "Trate conteúdos aguardando decisão.", icon: CheckSquare2, href: "/gestao-editorial", tone: "amber" as const },
 ];
