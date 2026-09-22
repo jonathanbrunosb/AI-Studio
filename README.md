@@ -6,7 +6,8 @@ Aplicação corporativa para criação, gestão e futura aprovação de comunica
 
 - Next.js 16 com App Router, Server Actions e `proxy.ts`.
 - React 19, TypeScript e Tailwind CSS 4.
-- Supabase Auth, PostgreSQL e Data API com SSR por cookies.
+- Supabase Auth, PostgreSQL, Storage privado e Data API com SSR por cookies.
+- Fabric.js 7.4 para composição e exportação do editor visual.
 - Vitest para testes unitários e de integração.
 - Preparado para hospedagem no Railway.
 
@@ -124,9 +125,22 @@ Testes completos de login válido, logout, convite e ciclo persistente exigem um
 - Use uma chave estável em `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` para manter Server Actions consistentes entre réplicas e deploys.
 - Nunca exponha a chave administrativa como variável pública.
 
-## Limites desta sprint
+## Editor visual — Sprint 4
 
-O bucket de mídia, geração de imagens, editor visual completo e transições de aprovação permanecem desativados. As tabelas preparatórias existem, mas não concedem operações de escrita aos clientes nesta etapa.
+- O Estúdio abre conteúdos editáveis em um canvas Fabric com texto, imagens, formas, camadas, agrupamento, bloqueio, ordenação e propriedades.
+- Formatos lógicos: Full HD 1920 × 1080, quadrado 1080 × 1080 e vertical 1080 × 1350. O zoom responsivo não altera a resolução final.
+- O projeto editável é salvo como JSON validado em `content_versions`. Há uma versão de trabalho, checkpoints imutáveis, desfazer/refazer em memória, salvamento automático e recuperação de versões.
+- Imagens PNG, JPG e WebP de até 10 MiB usam o bucket privado `editor-assets` e URLs assinadas. Não há bucket público para materiais em elaboração.
+- PNG e JPG são exportados na resolução lógica, identificados como rascunho. A exportação não altera o status editorial.
+- A documentação de arquitetura, segurança, atalhos e limites está em [`docs/EDITOR_VISUAL.md`](docs/EDITOR_VISUAL.md).
+
+### Migrações da Sprint 4
+
+As migrações adicionam tipos de versão (`working`, `checkpoint`, `frozen`), uma única versão de trabalho por conteúdo, validação autoritativa do snapshot, grants por coluna, auditoria e políticas do Storage. Aplique-as pelo mesmo fluxo versionado descrito acima.
+
+## Limites atuais
+
+Geração de imagens por IA e transições completas de aprovação permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
 
 ## Sprint 3 — Conteúdo e modelos
 
@@ -138,8 +152,8 @@ O bucket de mídia, geração de imagens, editor visual completo e transições 
 - A Biblioteca oferece busca por título, categoria, status, coleção, filtro de autoria, ordenação e paginação de 12 itens.
 - Materiais consultáveis, mas não editáveis pelo usuário, são abertos em modo de leitura.
 - Administradores configuram cores, fonte, nome institucional, logotipo e assinatura em `/administracao/identidade`, acessível pela página Modelos. A identidade central vale para todas as prévias; a composição individual permanece independente.
-- Imagem de apoio e logotipo são referenciados por URL HTTP(S). Use URLs institucionais duráveis; upload, cópia de arquivos, exportação gráfica e editor visual completo permanecem para etapas futuras.
-- A prévia é uma composição responsiva, não uma exportação pixel a pixel. Textos extensos podem aumentar a altura para preservar a leitura.
+- Imagem de apoio e logotipo da configuração editorial continuam aceitando URL HTTP(S); o editor visual utiliza o Storage privado para mídias da composição.
+- A prévia editorial da Sprint 3 permanece responsiva; a exportação pixel a pixel é realizada somente pelo editor visual da Sprint 4.
 
 ### Verificação da Sprint 3
 

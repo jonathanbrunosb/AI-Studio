@@ -10,7 +10,7 @@ describe.runIf(configured)("segurança Supabase sem autenticação", () => {
   const getClient = () => createClient<Database>(url!, key!, { auth: { persistSession: false, autoRefreshToken: false } });
 
   it("nega consultas anônimas às tabelas protegidas", async () => {
-    for (const table of ["profiles", "user_roles", "contents", "audit_logs", "templates", "brand_settings"] as const) {
+    for (const table of ["profiles", "user_roles", "contents", "audit_logs", "templates", "brand_settings", "content_versions", "media_assets"] as const) {
       const { data, error } = await getClient().from(table).select("*").limit(1);
       expect(data).toBeNull();
       expect(error?.code).toBe("42501");
@@ -21,6 +21,13 @@ describe.runIf(configured)("segurança Supabase sem autenticação", () => {
     const { data, error } = await getClient().rpc("duplicate_content", { source_id: "00000000-0000-4000-8000-000000000000" });
     expect(data).toBeNull();
     expect(error?.code).toBe("42501");
+  }, 20_000);
+
+  it("nega upload anônimo no bucket privado do editor", async () => {
+    const { data, error } = await getClient().storage.from("editor-assets")
+      .upload("anonymous/prohibited.png", new Blob(["not-an-image"], { type: "image/png" }));
+    expect(data).toBeNull();
+    expect(error).toBeTruthy();
   }, 20_000);
 
   it("rejeita credenciais inválidas sem criar sessão", async () => {

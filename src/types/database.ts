@@ -125,7 +125,10 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          label: string | null
           snapshot: Json
+          updated_at: string
+          version_kind: string
           version_number: number
         }
         Insert: {
@@ -133,7 +136,10 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          label?: string | null
           snapshot: Json
+          updated_at?: string
+          version_kind?: string
           version_number: number
         }
         Update: {
@@ -141,7 +147,10 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          label?: string | null
           snapshot?: Json
+          updated_at?: string
+          version_kind?: string
           version_number?: number
         }
         Relationships: [

@@ -14,6 +14,7 @@
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.0",
     "clsx": "latest",
+    "fabric": "7.4.0",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
