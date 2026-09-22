@@ -146,9 +146,15 @@ As migrações adicionam tipos de versão (`working`, `checkpoint`, `frozen`), u
 - Variáveis obrigatórias no servidor: `FAL_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. Sem elas, o painel informa que a integração está indisponível e nenhuma geração é simulada.
 - Documentação técnica e pendências: [`docs/IA_GERACAO_IMAGENS.md`](docs/IA_GERACAO_IMAGENS.md).
 
+## Fluxo editorial — Sprint 6
+
+- Envio para aprovação com versão imutável, fila de aprovação, tela de revisão, aprovação/ajustes, nova versão, arquivamento, histórico, notificações internas e pendências no dashboard.
+- Todas as transições ocorrem em funções transacionais do PostgreSQL; ninguém aprova conteúdo próprio, nem administradores.
+- Documentação: [`docs/FLUXO_EDITORIAL.md`](docs/FLUXO_EDITORIAL.md).
+
 ## Limites atuais
 
-Geração de vídeos e transições completas de aprovação permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
+Geração de vídeos e publicação no Portal da Contabilidade (Sprint 7) permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
 
 ## Sprint 3 — Conteúdo e modelos
 

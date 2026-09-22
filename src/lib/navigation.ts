@@ -11,5 +11,6 @@ export const navigationItems = [
 
 export function getPageTitle(pathname: string) {
   if (pathname === "/administracao/ia") return "Inteligência Artificial";
+  if (pathname.startsWith("/gestao-editorial/revisao/")) return "Revisão editorial";
   return pathname === "/administracao/identidade" ? "Identidade visual" : navigationItems.find((item) => item.href === pathname)?.label ?? "AI Studio";
 }

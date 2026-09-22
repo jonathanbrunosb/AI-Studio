@@ -103,6 +103,10 @@ export type Database = {
       }
       approval_events: {
         Row: {
+          version_id: string | null
+          from_status: string | null
+          to_status: string | null
+          cycle: number | null
           action: string
           actor_id: string
           comment: string | null
@@ -111,6 +115,10 @@ export type Database = {
           id: string
         }
         Insert: {
+          version_id?: string | null
+          from_status?: string | null
+          to_status?: string | null
+          cycle?: number | null
           action: string
           actor_id: string
           comment?: string | null
@@ -119,6 +127,10 @@ export type Database = {
           id?: string
         }
         Update: {
+          version_id?: string | null
+          from_status?: string | null
+          to_status?: string | null
+          cycle?: number | null
           action?: string
           actor_id?: string
           comment?: string | null
@@ -259,6 +271,16 @@ export type Database = {
       }
       contents: {
         Row: {
+          submitted_version_id: string | null
+          approved_version_id: string | null
+          assigned_reviewer_id: string | null
+          submitted_at: string | null
+          approved_at: string | null
+          approved_by: string | null
+          review_cycle: number
+          archived_at: string | null
+          archived_by: string | null
+          archived_from_status: string | null
           category: string
           collection_name: string
           created_at: string
@@ -277,6 +299,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          submitted_version_id?: string | null
+          approved_version_id?: string | null
+          assigned_reviewer_id?: string | null
+          submitted_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          review_cycle?: number
+          archived_at?: string | null
+          archived_by?: string | null
+          archived_from_status?: string | null
           category: string
           collection_name?: string
           created_at?: string
@@ -295,6 +327,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          submitted_version_id?: string | null
+          approved_version_id?: string | null
+          assigned_reviewer_id?: string | null
+          submitted_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          review_cycle?: number
+          archived_at?: string | null
+          archived_by?: string | null
+          archived_from_status?: string | null
           category?: string
           collection_name?: string
           created_at?: string
@@ -479,6 +521,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          recipient_id: string
+          content_id: string | null
+          type: string
+          title: string
+          message: string
+          created_at: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          recipient_id: string
+          content_id?: string | null
+          type: string
+          title: string
+          message: string
+          created_at?: string
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          recipient_id?: string
+          content_id?: string | null
+          type?: string
+          title?: string
+          message?: string
+          created_at?: string
+          read_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -643,6 +718,20 @@ export type Database = {
     }
     Functions: {
       duplicate_content: { Args: { source_id: string }; Returns: string }
+      submit_content_for_review: {
+        Args: { p_content_id: string; p_reviewer_id?: string | null; p_comment?: string | null; p_expected_working_updated_at?: string | null }
+        Returns: string
+      }
+      decide_content_review: {
+        Args: { p_content_id: string; p_version_id: string; p_decision: string; p_comment?: string | null }
+        Returns: undefined
+      }
+      create_new_content_version: { Args: { p_content_id: string }; Returns: undefined }
+      archive_content: { Args: { p_content_id: string; p_reason?: string | null }; Returns: undefined }
+      list_eligible_reviewers: {
+        Args: { p_content_id: string }
+        Returns: { id: string; full_name: string; email: string }[]
+      }
       reserve_generation_job: {
         Args: {
           p_user_id: string

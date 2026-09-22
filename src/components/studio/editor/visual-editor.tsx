@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, History, SlidersHorizontal, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, History, Send, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useEditor } from "@/hooks/use-editor";
 import { useEditorPersistence } from "@/hooks/use-editor-persistence";
 import { editorFormats, type EditorProject, type EditorSeed, type MediaAsset, type TemplateOption, type VersionSummary } from "@/lib/editor/editor-types";
@@ -54,6 +54,13 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
     if (ok) { router.refresh(); setHistoryOpen(true); }
   }
 
+  /** Garante que não há alterações pendentes antes de abrir o envio para aprovação. */
+  async function goToSubmit() {
+    const ok = persistence.status === "saved" || await persistence.saveNow(false);
+    if (!ok) { window.alert("Não foi possível salvar a composição. Resolva o erro de salvamento antes de enviar."); return; }
+    router.push(`/studio?id=${contentId}&submit=1`);
+  }
+
   function resize(width: number, height: number) {
     const nextWidth = clampNumber(Math.round(width), 320, 4096);
     const nextHeight = clampNumber(Math.round(height), 320, 4096);
@@ -78,6 +85,7 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
           {Object.entries(editorFormats).map(([key, format]) => <button key={key} className={`rounded-lg px-3 py-1.5 text-[11px] font-bold ${project.canvas.width === format.width && project.canvas.height === format.height ? "bg-blue-700 text-white" : "bg-white text-slate-600"}`} onClick={() => resize(format.width, format.height)}>{format.label}</button>)}
           <button className="ml-auto flex items-center gap-1 text-xs font-bold text-slate-600" onClick={() => setHistoryOpen((value) => !value)}><History size={14} />Histórico</button>
+          <button className="flex items-center gap-1 rounded-lg bg-blue-700 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-800 disabled:bg-slate-300" disabled={persistence.status === "saving"} onClick={() => void goToSubmit()} title="Salva a composição e abre a confirmação de envio"><Send size={13} />Enviar para aprovação</button>
         </div>
         {historyOpen && <div className="absolute right-3 top-12 z-40 max-h-80 w-72 overflow-auto rounded-xl border border-slate-200 bg-white p-3 shadow-xl"><p className="mb-2 text-xs font-bold text-slate-700">Versões salvas</p>{initialHistory.map((version) => <button key={version.id} disabled={!version.project} onClick={() => { if (version.project && window.confirm("Recuperar esta composição? A versão atual permanecerá no histórico de desfazer.")) { void editor.loadProject(version.project); setHistoryOpen(false); } }} className="mb-1 w-full rounded-lg p-2 text-left hover:bg-slate-50 disabled:opacity-50"><span className="block text-xs font-bold">v{version.versionNumber} · {version.label ?? version.kind}</span><span className="text-[10px] text-slate-400">{new Date(version.updatedAt).toLocaleString("pt-BR")}</span></button>)}{!initialHistory.length && <p className="p-3 text-center text-xs text-slate-400">O primeiro salvamento criará o histórico.</p>}</div>}
         <EditorCanvas canvasRef={editor.elementRef} width={project.canvas.width} height={project.canvas.height} zoom={zoom} />
