@@ -22,7 +22,7 @@ body {
   margin: 0;
   color: var(--text);
   background: var(--canvas);
-  font-family: Calibri, Carlito, Arial, sans-serif;
+  font-family: Calibri, "Segoe UI", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 button, input, textarea, select { font: inherit; }

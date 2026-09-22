@@ -4,7 +4,7 @@ export const designTokens = {
     surface: { canvas: "#f4f7fb", card: "#ffffff", subtle: "#f8fafc" },
     status: { draft: "#64748b", review: "#d97706", approved: "#1769aa", published: "#278563", changes: "#c75b64" },
   },
-  typography: { sans: "Calibri, Carlito, Arial, sans-serif" },
+  typography: { sans: "Calibri, 'Segoe UI', Arial, sans-serif" },
   spacing: { page: "clamp(1rem, 2.4vw, 2rem)", section: "1.5rem" },
   borders: { default: "#e4eaf1" },
   shadows: { card: "0 8px 28px rgba(15, 39, 68, 0.07)" },

@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight, Layers3, X } from "lucide-react";
 import { navigationItems } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import type { AppRole } from "@/lib/auth/authorization";
 
-interface SidebarProps { collapsed: boolean; mobileOpen: boolean; onCloseMobile: () => void; onToggle: () => void }
+interface SidebarProps { collapsed: boolean; mobileOpen: boolean; onCloseMobile: () => void; onToggle: () => void; roles: AppRole[] }
 
-export function Sidebar({ collapsed, mobileOpen, onCloseMobile, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed, mobileOpen, onCloseMobile, onToggle, roles }: SidebarProps) {
   const pathname = usePathname();
+  const visibleItems = navigationItems.filter((item) => item.href !== "/administracao" || roles.includes("admin"));
 
   return (
     <>
@@ -27,7 +29,7 @@ export function Sidebar({ collapsed, mobileOpen, onCloseMobile, onToggle }: Side
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto px-3 py-6" aria-label="Navegação principal">
           {!collapsed && <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-200/50">Workspace</p>}
-          {navigationItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
             return (

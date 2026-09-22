@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppShell } from "@/components/layout/app-shell";
 
 export const metadata: Metadata = {
   title: { default: "AI Studio | Comunicação Contábil", template: "%s | AI Studio" },
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body><AppShell>{children}</AppShell></body>
+      <body>{children}</body>
     </html>
   );
 }
