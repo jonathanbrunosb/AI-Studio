@@ -138,9 +138,17 @@ Testes completos de login válido, logout, convite e ciclo persistente exigem um
 
 As migrações adicionam tipos de versão (`working`, `checkpoint`, `frozen`), uma única versão de trabalho por conteúdo, validação autoritativa do snapshot, grants por coluna, auditoria e políticas do Storage. Aplique-as pelo mesmo fluxo versionado descrito acima.
 
+## Geração de imagens com IA — Sprint 5
+
+- Provedor inicial: **fal.ai** (Queue API oficial), modelos FLUX.1 [schnell], FLUX.1 [dev] e FLUX.1 [dev] image-to-image.
+- Painel "Geração com IA" na lateral direita do editor visual; resultados vão para o bucket privado `ai-generated` e para `media_assets`.
+- Administração em `/administracao/ia`: habilitação de modelos, custos de referência, limites por usuário e indicadores de consumo.
+- Variáveis obrigatórias no servidor: `FAL_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. Sem elas, o painel informa que a integração está indisponível e nenhuma geração é simulada.
+- Documentação técnica e pendências: [`docs/IA_GERACAO_IMAGENS.md`](docs/IA_GERACAO_IMAGENS.md).
+
 ## Limites atuais
 
-Geração de imagens por IA e transições completas de aprovação permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
+Geração de vídeos e transições completas de aprovação permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
 
 ## Sprint 3 — Conteúdo e modelos
 

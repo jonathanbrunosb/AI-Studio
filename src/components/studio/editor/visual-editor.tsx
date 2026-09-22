@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, History } from "lucide-react";
+import { ChevronLeft, ChevronRight, History, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useEditor } from "@/hooks/use-editor";
 import { useEditorPersistence } from "@/hooks/use-editor-persistence";
 import { editorFormats, type EditorProject, type EditorSeed, type MediaAsset, type TemplateOption, type VersionSummary } from "@/lib/editor/editor-types";
@@ -10,13 +10,18 @@ import { clampNumber } from "@/lib/editor/editor-utils";
 import { EditorCanvas } from "./editor-canvas";
 import { EditorSidebar } from "./editor-sidebar";
 import { EditorToolbar } from "./editor-toolbar";
+import type { AvailableModel } from "@/lib/ai/models/model-types";
+import type { GenerationJobView } from "@/lib/ai/services/job-view";
+import { AiPanel, type AiAvailability } from "./ai-panel";
 import { ExportDialog } from "./export-dialog";
 import { PropertiesPanel } from "./properties-panel";
 
-export function VisualEditor({ contentId, contentTitle, seed, initialProject, initialMedia, initialHistory, templates, userId }: {
+export function VisualEditor({ contentId, contentTitle, seed, initialProject, initialMedia, initialHistory, templates, userId, aiModels, aiAvailability, initialJobs }: {
   contentId: string; contentTitle: string; seed: EditorSeed; initialProject: EditorProject;
   initialMedia: MediaAsset[]; initialHistory: VersionSummary[]; templates: TemplateOption[]; userId: string;
+  aiModels: AvailableModel[]; aiAvailability: AiAvailability; initialJobs: GenerationJobView[];
 }) {
+  const [rightTab, setRightTab] = useState<"properties" | "ai">("properties");
   const [project, setProject] = useState<EditorProject>(initialProject);
   const [media, setMedia] = useState(initialMedia);
   const [zoom, setZoom] = useState(.45);
@@ -79,7 +84,20 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
       </div>
       <button className="z-30 grid w-7 shrink-0 place-items-center border-l border-slate-200 bg-white text-slate-400 hover:text-blue-700" onClick={() => setRightOpen((value) => !value)} title="Recolher propriedades">{rightOpen ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}</button>
       <div className={`${rightOpen ? "block" : "hidden"} absolute right-0 z-20 h-[calc(100vh-235px)] shadow-xl xl:relative xl:block xl:shadow-none`}>
-        <PropertiesPanel selected={editor.selected} project={project} onUpdate={editor.updateSelected} onBackground={editor.setBackground} onResize={resize} />
+        <div className="flex h-full flex-col bg-white">
+          <div role="tablist" className="flex shrink-0 border-b border-l border-slate-200">
+            <button role="tab" aria-selected={rightTab === "properties"} onClick={() => setRightTab("properties")} className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[11px] font-bold ${rightTab === "properties" ? "border-b-2 border-blue-700 text-blue-700" : "text-slate-500"}`}><SlidersHorizontal size={13} />Propriedades</button>
+            <button role="tab" aria-selected={rightTab === "ai"} onClick={() => setRightTab("ai")} className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[11px] font-bold ${rightTab === "ai" ? "border-b-2 border-blue-700 text-blue-700" : "text-slate-500"}`}><Sparkles size={13} />Geração com IA</button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <div className={rightTab === "properties" ? "flex h-full" : "hidden"}><PropertiesPanel selected={editor.selected} project={project} onUpdate={editor.updateSelected} onBackground={editor.setBackground} onResize={resize} /></div>
+            <div className={rightTab === "ai" ? "h-full w-[320px] overflow-y-auto border-l border-slate-200 p-4" : "hidden"}>
+              <AiPanel contentId={contentId} models={aiModels} availability={aiAvailability} initialJobs={initialJobs} library={media}
+                onInsert={(asset) => void editor.addImage(asset)} onBackground={(asset) => void editor.setBackgroundImage(asset)}
+                onLibraryAdd={(asset) => setMedia((current) => [asset, ...current.filter((item) => item.id !== asset.id)])} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     {persistence.status === "error" && <div role="alert" className="flex items-center justify-between bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700"><span>As alterações continuam nesta sessão, mas não foram salvas.</span><button className="underline" onClick={() => void persistence.saveNow(false)}>Tentar novamente</button></div>}

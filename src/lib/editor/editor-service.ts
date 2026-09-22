@@ -11,7 +11,8 @@ export async function loadEditorProject(client: Client, content: Database["publi
     client.from("content_versions").select("*").eq("content_id", content.id).eq("version_kind", "working").maybeSingle(),
     client.from("content_versions").select("id, version_number, version_kind, label, updated_at, snapshot")
       .eq("content_id", content.id).order("version_number", { ascending: false }).limit(20),
-    client.from("media_assets").select("id, file_name, storage_path, mime_type")
+    client.from("media_assets").select("id, file_name, storage_path, mime_type, bucket, width, height")
+      .eq("in_library", true).is("deleted_at", null)
       .order("created_at", { ascending: false }).limit(40),
     client.from("templates").select("id, name, description, category, configuration")
       .eq("is_active", true).order("name"),
@@ -25,17 +26,38 @@ export async function loadEditorProject(client: Client, content: Database["publi
 
   const media: MediaAsset[] = [];
   for (const asset of assets ?? []) {
-    const signed = await client.storage.from("editor-assets").createSignedUrl(asset.storage_path, 3600);
+    const signed = await client.storage.from(asset.bucket).createSignedUrl(asset.storage_path, 3600);
     if (signed.data?.signedUrl) media.push({
       id: asset.id,
       fileName: asset.file_name,
       storagePath: asset.storage_path,
       mimeType: asset.mime_type,
       signedUrl: signed.data.signedUrl,
+      bucket: asset.bucket,
+      width: asset.width,
+      height: asset.height,
     });
   }
 
   const signedByPath = new Map(media.map((asset) => [asset.storagePath, asset.signedUrl]));
+  // Imagens usadas na composição (inclusive geradas por IA fora da biblioteca) precisam de URLs renovadas ao reabrir.
+  const referencedPaths = new Set<string>();
+  const collectPaths = (value: unknown) => {
+    if (Array.isArray(value)) { value.forEach(collectPaths); return; }
+    if (!value || typeof value !== "object") return;
+    const object = value as Record<string, unknown>;
+    if (typeof object.storagePath === "string" && !signedByPath.has(object.storagePath)) referencedPaths.add(object.storagePath);
+    Object.values(object).forEach(collectPaths);
+  };
+  collectPaths(working?.snapshot);
+  (versions ?? []).forEach((version) => collectPaths(version.snapshot));
+  if (referencedPaths.size) {
+    const { data: referenced } = await client.from("media_assets").select("storage_path, bucket").in("storage_path", [...referencedPaths]);
+    for (const asset of referenced ?? []) {
+      const signed = await client.storage.from(asset.bucket).createSignedUrl(asset.storage_path, 3600);
+      if (signed.data?.signedUrl) signedByPath.set(asset.storage_path, signed.data.signedUrl);
+    }
+  }
   const refreshSignedUrls = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(refreshSignedUrls);
     if (!value || typeof value !== "object") return value;

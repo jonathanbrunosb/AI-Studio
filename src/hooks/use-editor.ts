@@ -10,7 +10,7 @@ import { serializeCanvas } from "@/lib/editor/editor-serialization";
 import { useEditorHistory } from "./use-editor-history";
 
 export type EditorFabricObject = FabricObject & {
-  editorId?: string; name?: string; storagePath?: string; assetId?: string; locked?: boolean;
+  editorId?: string; name?: string; storagePath?: string; assetId?: string; locked?: boolean; role?: string;
 };
 
 export type LayerItem = {
@@ -167,6 +167,18 @@ export function useEditor(initialProject: EditorProject, seed: EditorSeed, onPro
     canvas.add(image); canvas.setActiveObject(image); canvas.requestRenderAll(); commit();
   }, [commit]);
 
+  /** Aplica a imagem como plano de fundo (camada inferior, cobrindo o canvas) sem remover os demais elementos. */
+  const setBackgroundImage = useCallback(async (asset: MediaAsset) => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const image = await FabricImage.fromURL(asset.signedUrl, { crossOrigin: "anonymous" });
+    const scale = Math.max(canvas.getWidth() / image.width, canvas.getHeight() / image.height);
+    image.set({ scaleX: scale, scaleY: scale, left: (canvas.getWidth() - image.width * scale) / 2, top: (canvas.getHeight() - image.height * scale) / 2 });
+    const previous = (canvas.getObjects() as EditorFabricObject[]).filter((object) => object.role === "background");
+    if (previous.length) canvas.remove(...previous);
+    Object.assign(image, { editorId: createEditorId("background"), name: `Plano de fundo · ${asset.fileName}`, storagePath: asset.storagePath, assetId: asset.id, locked: false, role: "background" });
+    canvas.add(image); canvas.sendObjectToBack(image); canvas.setActiveObject(image); canvas.requestRenderAll(); commit();
+  }, [commit]);
+
   const removeSelected = useCallback(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const objects = canvas.getActiveObjects(); if (!objects.length) return;
@@ -260,7 +272,7 @@ export function useEditor(initialProject: EditorProject, seed: EditorSeed, onPro
   }, [duplicateSelected, history, removeSelected]);
 
   return {
-    elementRef, ready, layers, selected, addText, addShape, addImage, removeSelected,
+    elementRef, ready, layers, selected, addText, addShape, addImage, setBackgroundImage, removeSelected,
     duplicateSelected, groupSelected, updateSelected, selectLayer, mutateLayer,
     resizeCanvas, setBackground, applyTemplate, getCanvas,
     loadProject: (project: EditorProject) => restoreSnapshot(JSON.stringify(project)),

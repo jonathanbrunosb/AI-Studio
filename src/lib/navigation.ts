@@ -10,5 +10,6 @@ export const navigationItems = [
 ] as const;
 
 export function getPageTitle(pathname: string) {
+  if (pathname === "/administracao/ia") return "Inteligência Artificial";
   return pathname === "/administracao/identidade" ? "Identidade visual" : navigationItems.find((item) => item.href === pathname)?.label ?? "AI Studio";
 }

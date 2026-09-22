@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_models: {
+        Row: {
+          id: string
+          provider: string
+          name: string
+          is_enabled: boolean
+          estimated_cost_per_image: number | null
+          cost_currency: string
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          provider: string
+          name: string
+          is_enabled?: boolean
+          estimated_cost_per_image?: number | null
+          cost_currency?: string
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          provider?: string
+          name?: string
+          is_enabled?: boolean
+          estimated_cost_per_image?: number | null
+          cost_currency?: string
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_settings: {
+        Row: {
+          id: boolean
+          integration_enabled: boolean
+          default_max_requests: number
+          period_days: number
+          allow_restricted_references: boolean
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          integration_enabled?: boolean
+          default_max_requests?: number
+          period_days?: number
+          allow_restricted_references?: boolean
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          integration_enabled?: boolean
+          default_max_requests?: number
+          period_days?: number
+          allow_restricted_references?: boolean
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_user_limits: {
+        Row: {
+          user_id: string
+          max_requests: number
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          max_requests: number
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          max_requests?: number
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       approval_events: {
         Row: {
           action: string
@@ -244,6 +331,18 @@ export type Database = {
       }
       generation_jobs: {
         Row: {
+          provider: string
+          model: string
+          prompt: string
+          settings: Json
+          external_request_id: string | null
+          error_message: string | null
+          estimated_cost: number | null
+          actual_cost: number | null
+          image_count: number
+          completed_at: string | null
+          finalizing_at: string | null
+          parent_job_id: string | null
           content_id: string
           created_at: string
           created_by: string
@@ -252,6 +351,18 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          provider: string
+          model: string
+          prompt: string
+          settings?: Json
+          external_request_id?: string | null
+          error_message?: string | null
+          estimated_cost?: number | null
+          actual_cost?: number | null
+          image_count?: number
+          completed_at?: string | null
+          finalizing_at?: string | null
+          parent_job_id?: string | null
           content_id: string
           created_at?: string
           created_by: string
@@ -260,6 +371,18 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          provider?: string
+          model?: string
+          prompt?: string
+          settings?: Json
+          external_request_id?: string | null
+          error_message?: string | null
+          estimated_cost?: number | null
+          actual_cost?: number | null
+          image_count?: number
+          completed_at?: string | null
+          finalizing_at?: string | null
+          parent_job_id?: string | null
           content_id?: string
           created_at?: string
           created_by?: string
@@ -286,6 +409,15 @@ export type Database = {
       }
       media_assets: {
         Row: {
+          bucket: string
+          source: string
+          generation_job_id: string | null
+          width: number | null
+          height: number | null
+          size_bytes: number | null
+          in_library: boolean
+          sensitivity: string
+          deleted_at: string | null
           content_id: string | null
           created_at: string
           created_by: string
@@ -295,6 +427,15 @@ export type Database = {
           storage_path: string
         }
         Insert: {
+          bucket?: string
+          source?: string
+          generation_job_id?: string | null
+          width?: number | null
+          height?: number | null
+          size_bytes?: number | null
+          in_library?: boolean
+          sensitivity?: string
+          deleted_at?: string | null
           content_id?: string | null
           created_at?: string
           created_by: string
@@ -304,6 +445,15 @@ export type Database = {
           storage_path: string
         }
         Update: {
+          bucket?: string
+          source?: string
+          generation_job_id?: string | null
+          width?: number | null
+          height?: number | null
+          size_bytes?: number | null
+          in_library?: boolean
+          sensitivity?: string
+          deleted_at?: string | null
           content_id?: string | null
           created_at?: string
           created_by?: string
@@ -493,6 +643,20 @@ export type Database = {
     }
     Functions: {
       duplicate_content: { Args: { source_id: string }; Returns: string }
+      reserve_generation_job: {
+        Args: {
+          p_user_id: string
+          p_content_id: string
+          p_provider: string
+          p_model: string
+          p_prompt: string
+          p_settings: Json
+          p_image_count: number
+          p_estimated_cost: number | null
+          p_parent_job_id?: string | null
+        }
+        Returns: { job_id: string; used: number; quota: number }[]
+      }
     }
     Enums: {
       [_ in never]: never
