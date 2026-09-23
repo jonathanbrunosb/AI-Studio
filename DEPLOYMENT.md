@@ -37,25 +37,26 @@ Na inicialização a aplicação registra `config.invalid` (nomes das variáveis
 
 ## 3. Railway — configuração
 
-`railway.json` (Config as Code):
+`railway.json` documenta a configuração originalmente preparada:
 
 - Build: Railpack, `npm run build` (Node ≥ 22, conforme `engines`).
 - Start: `npm run start` (o Next.js usa a variável `PORT` do Railway).
 - Healthcheck: `GET /api/health` (sem autenticação, sem dados internos), timeout 120 s; responde 503 se a configuração pública do Supabase estiver ausente.
 - Reinício: `ON_FAILURE`, até 5 tentativas; `drainingSeconds` 15.
 
-> **Atenção:** o Railway declarou o Config as Code (`railway.json`) **descontinuado**, com suporte para serviços existentes até **01/12/2026**, recomendando migrar para Infrastructure as Code (`.railway/railway.ts`). Migrar antes dessa data (pendência registrada).
+> **Atenção:** o Railway declarou o Config as Code (`railway.json`) **descontinuado**. Novos serviços não podem mais adotá-lo; serviços existentes têm suporte somente até **01/12/2026**. No primeiro deploy, configurar build/start/healthcheck pelo painel ou CLI e, após vincular o projeto, executar `railway config pull` para gerar a Infrastructure as Code em `.railway/railway.ts`. Referência: [Railway — Config as Code](https://docs.railway.com/config-as-code).
 
 ### Passo a passo (primeira implantação — requer aprovação)
 
 1. Criar projeto `ai-studio` no Railway com os ambientes `homologacao` e `production`; conectar o repositório `jonathanbrunosb/AI-Studio`, branch `main`.
-2. Cadastrar as variáveis da §2 em cada ambiente (valores próprios de cada ambiente).
-3. Gerar domínio (Railway ou domínio corporativo). Atualizar `NEXT_PUBLIC_APP_URL`.
-4. No Supabase do ambiente: **Authentication → URL Configuration** — Site URL = `NEXT_PUBLIC_APP_URL`; Redirect URLs = `<APP_URL>/auth/callback**` (o link de redefinição usa `/auth/callback?next=/atualizar-senha`).
-5. Aplicar as migrações pendentes no Supabase do ambiente (em ordem; conferir com `list_migrations`).
-6. Deploy. Aguardar healthcheck verde.
-7. Executar as verificações pós-implantação (§4).
-8. Somente após validar HTTPS no domínio e subdomínios: `ENABLE_HSTS=true` e novo deploy.
+2. No serviço de homologação, configurar Railpack, build `npm run build`, start `npm run start`, healthcheck `/api/health`, timeout 120 s, reinício `ON_FAILURE` (5 tentativas) e draining de 15 s. Não depender de `railway.json` em serviço novo.
+3. Vincular a Railway CLI ao projeto e executar `railway config pull`; revisar e versionar `.railway/railway.ts` sem valores de segredo antes de aplicar IaC.
+4. Cadastrar as variáveis da §2 em cada ambiente (valores próprios de cada ambiente).
+5. Gerar domínio (Railway ou domínio corporativo). Atualizar `NEXT_PUBLIC_APP_URL`.
+6. No Supabase do ambiente: **Authentication → URL Configuration** — Site URL = `NEXT_PUBLIC_APP_URL`; Redirect URLs = `<APP_URL>/auth/callback**` (o link de redefinição usa `/auth/callback?next=/atualizar-senha`).
+7. Aplicar as migrações pendentes no Supabase do ambiente (em ordem; conferir com `list_migrations`).
+8. Deploy. Aguardar healthcheck verde e executar as verificações pós-implantação (§4).
+9. Somente após validar HTTPS no domínio e subdomínios: `ENABLE_HSTS=true` e novo deploy.
 
 ## 4. Verificações pós-implantação
 

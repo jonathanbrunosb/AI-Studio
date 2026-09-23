@@ -134,7 +134,7 @@ bash scripts/e2e/stop-stack.sh
 
 ## Railway
 
-Configuração em `railway.json` (healthcheck `/api/health`). Passo a passo, variáveis, verificações pós-deploy e rollback em [DEPLOYMENT.md](DEPLOYMENT.md).
+O `railway.json` legado documenta build/start/healthcheck, mas novos serviços devem ser configurados no Railway e migrados para Infrastructure as Code (`.railway/railway.ts`) após o projeto ser criado. Passo a passo, variáveis, verificações pós-deploy e rollback em [DEPLOYMENT.md](DEPLOYMENT.md).
 
 O workflow `.github/workflows/ci.yml` executa lint, typecheck, testes unitários, auditoria de dependências, build, testes SQL e E2E em pushes e pull requests. A existência desses arquivos não cria nem publica um serviço Railway; o primeiro deploy continua dependendo de autorização e configuração explícitas.
 

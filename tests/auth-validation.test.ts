@@ -40,7 +40,7 @@ describe("URL pública de redirecionamento", () => {
     expect(appUrl("https://evil.example.com", "http://localhost:8080/x", "https://aistudio.example.com").origin).toBe("https://aistudio.example.com");
   });
   it("sem configuração válida, usa a origem da requisição", () => {
-    expect(appUrl("/login", "http://127.0.0.1:3100/x", undefined).href).toBe("http://127.0.0.1:3100/login");
+    expect(appUrl("/login", "http://127.0.0.1:3100/x", "").href).toBe("http://127.0.0.1:3100/login");
     expect(appUrl("/login", "http://127.0.0.1:3100/x", "não-url").href).toBe("http://127.0.0.1:3100/login");
   });
 });

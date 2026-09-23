@@ -85,9 +85,8 @@ Classificação da especificação: *Implementado e validado*, *Implementado com
 1. `style-src 'unsafe-inline'`: exigido por React/Fabric; risco baixo.
 2. Limitação de tentativas de login delegada ao Supabase Auth.
 3. Limitador em memória da API do Portal: válido para instância única.
-4. Seis funções `SECURITY DEFINER` executáveis por usuários autenticados (advisor): intencionais, todas validam `auth.uid()`, papel e status internamente.
-5. Nenhum teste de intrusão independente realizado.
-6. Dados em **us-east-2 (EUA)**: avaliar residência de dados frente à LGPD e às políticas corporativas.
+4. Nenhum teste de intrusão independente realizado.
+5. Dados em **us-east-2 (EUA)**: avaliar residência de dados frente à LGPD e às políticas corporativas.
 
 `npm audit`: **0 vulnerabilidades**.
 
@@ -95,7 +94,7 @@ Classificação da especificação: *Implementado e validado*, *Implementado com
 
 ## D. Banco de dados
 
-- **15 arquivos de migração** (10 com esquema e 5 marcadores de histórico), com nomes idênticos às versões registradas em produção. No Supabase de produção (`idrseyhwkhlvedfgzecb`) foram aplicadas nesta sprint `sprint_8_hardening` e `sprint_8_audit_governance`. Ambas são aditivas e não destrutivas. A base de produção tinha 0 conteúdos e 1 usuário.
+- **17 arquivos de migração** com nomes idênticos às versões registradas no Supabase. Além de `sprint_8_hardening` e `sprint_8_audit_governance`, foram aplicados `harden_privileged_rpc_boundaries` e `add_foreign_key_indexes`, ambos aditivos e não destrutivos. A base tinha 0 conteúdos e 1 usuário durante a auditoria.
 - **RLS** habilitado em todas as tabelas públicas, sem concessões a `anon`. Grants conferidos diretamente em produção, por exemplo em `audit_logs`: `service_role` tem só `INSERT`/`SELECT`, e `authenticated` só `SELECT`.
 - **Testes SQL** (`npm run test:sql`) — **8/8 aprovados** em banco descartável:
   - isolamento por usuário;
@@ -107,8 +106,8 @@ Classificação da especificação: *Implementado e validado*, *Implementado com
   - regressões da Sprint 8;
   - imutabilidade da auditoria.
 - **Advisors pós-migração**:
-  - Segurança: 6 avisos de `SECURITY DEFINER` (intencionais) e 1 de proteção de senha vazada (pendente).
-  - Desempenho: advertências de políticas duplicadas eliminadas; restam 14 FKs de colunas de auditoria sem índice e índices "não usados" (INFO; a base está vazia).
+  - Segurança: os 6 avisos de RPCs privilegiados foram eliminados por wrappers públicos `SECURITY INVOKER` e implementações em `app_private`; resta somente proteção de senha vazada (pendente).
+  - Desempenho: políticas duplicadas e FKs sem índice foram tratadas; restam apenas índices "não usados" (INFO esperado enquanto a base estiver vazia).
 - **Storage**: 4 buckets privados com URLs assinadas. No E2E o Storage é simulado; as políticas do Storage são cobertas pelos testes SQL.
 
 ---
@@ -117,7 +116,7 @@ Classificação da especificação: *Implementado e validado*, *Implementado com
 
 | Item | Situação |
 |---|---|
-| Railway | `railway.json` pronto: Railpack, build/start, healthcheck `/api/health`, restart. **Nenhum serviço criado** (aguarda aprovação). O Railway declarou o `railway.json` descontinuado (suporte até **01/12/2026**); migrar para IaC |
+| Railway | Build/start/healthcheck estão documentados, mas **nenhum serviço foi criado**. Novos serviços não podem adotar o `railway.json` descontinuado; configurar pelo painel/CLI e capturar `.railway/railway.ts` após autorização |
 | Ambientes | Estratégia documentada (dev, CI, homologação, produção). **Projeto Supabase de homologação não existe** e é pré-requisito |
 | Supabase | Organização no **plano Free**: sem backup automático, com pausa após 7 dias de baixa atividade; região us-east-2 |
 | CI | Workflow com 3 jobs (qualidade, SQL, E2E). **Ainda não executado no GitHub** (roda no primeiro PR) |
@@ -133,7 +132,7 @@ Classificação da especificação: *Implementado e validado*, *Implementado com
 | Suíte | Resultado | Observação |
 |---|---|---|
 | Lint (ESLint) e tipos (TypeScript) | Aprovado | — |
-| Unitários (Vitest) | **93 aprovados**, 4 ignorados | Os 4 ignorados exigem acesso ao Supabase real, bloqueado nesta rede |
+| Unitários (Vitest) | **97 aprovados**, 3 ignorados | Execução integrada mais recente em 23/09; os ignorados dependem de integração externa opcional |
 | SQL | **8/8** | — |
 | Build de produção | Aprovado | Todas as rotas dinâmicas (nonce da CSP) |
 | E2E (Playwright) | **38/38** em pilha limpa | auth 6, segurança 13, permissões 6, comunicado 2, IA 2, editorial 4, publicação 1, responsividade 1, desempenho 2, manual 1 |
@@ -184,7 +183,7 @@ Os processos essenciais estão funcionando e comprovados por testes automatizado
 |---|---|---|
 | Autenticação | ✅ Validado | `auth`, `permissions` |
 | Controle de acesso | ✅ Validado | `permissions`, `journey-editorial` |
-| Banco de dados | ✅ Validado | 15 arquivos de migração alinhados com produção; 8 suítes SQL; produção conferida |
+| Banco de dados | ✅ Validado | 17 arquivos de migração alinhados com o Supabase; 8 suítes SQL; catálogo e Advisors conferidos |
 | RLS | ✅ Validado | Testes SQL e E2E via PostgREST real |
 | Storage | ⚠️ Parcial | Buckets privados em produção e políticas testadas em SQL; no E2E o Storage é simulado |
 | Editor visual | ✅ Validado | Criação, edição, salvamento, reabertura e exportação 1080×1080 |
@@ -205,4 +204,4 @@ Os processos essenciais estão funcionando e comprovados por testes automatizado
 4. Executar o **roteiro de homologação** com 3 pessoas distintas, incluindo a geração real de IA (autorizando o consumo) e a importação no portal.
 5. Configurar **alertas e monitor de disponibilidade**; executar o **teste de restauração** em projeto separado.
 6. Definir o **prazo de retenção da auditoria**.
-7. Após a validação de HTTPS e domínio, ativar HSTS. Migrar `railway.json` para IaC até 01/12/2026.
+7. Após a validação de HTTPS e domínio, ativar HSTS. Como o serviço será novo, configurar Railway pelo painel/CLI e capturar a IaC em `.railway/railway.ts`; não depender de `railway.json`.
