@@ -50,6 +50,9 @@ export type MediaAsset = {
   storagePath: string;
   mimeType: string | null;
   signedUrl: string;
+  bucket?: string;
+  width?: number | null;
+  height?: number | null;
 };
 
 export type VersionSummary = {

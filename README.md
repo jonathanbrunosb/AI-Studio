@@ -138,9 +138,31 @@ Testes completos de login válido, logout, convite e ciclo persistente exigem um
 
 As migrações adicionam tipos de versão (`working`, `checkpoint`, `frozen`), uma única versão de trabalho por conteúdo, validação autoritativa do snapshot, grants por coluna, auditoria e políticas do Storage. Aplique-as pelo mesmo fluxo versionado descrito acima.
 
+## Geração de imagens com IA — Sprint 5
+
+- Provedor inicial: **fal.ai** (Queue API oficial), modelos FLUX.1 [schnell], FLUX.1 [dev] e FLUX.1 [dev] image-to-image.
+- Painel "Geração com IA" na lateral direita do editor visual; resultados vão para o bucket privado `ai-generated` e para `media_assets`.
+- Administração em `/administracao/ia`: habilitação de modelos, custos de referência, limites por usuário e indicadores de consumo.
+- Variáveis obrigatórias no servidor: `FAL_KEY` e `SUPABASE_SERVICE_ROLE_KEY`. Sem elas, o painel informa que a integração está indisponível e nenhuma geração é simulada.
+- Documentação técnica e pendências: [`docs/IA_GERACAO_IMAGENS.md`](docs/IA_GERACAO_IMAGENS.md).
+
+## Fluxo editorial — Sprint 6
+
+- Envio para aprovação com versão imutável, fila de aprovação, tela de revisão, aprovação/ajustes, nova versão, arquivamento, histórico, notificações internas e pendências no dashboard.
+- Todas as transições ocorrem em funções transacionais do PostgreSQL; ninguém aprova conteúdo próprio, nem administradores.
+- Documentação: [`docs/FLUXO_EDITORIAL.md`](docs/FLUXO_EDITORIAL.md).
+
+## Central de Publicações — Sprint 7
+
+- `/publicacoes`: conteúdos com versão aprovada, preparação do pacote ZIP (manifesto versionado, SHA-256 e assinatura ECDSA), download autenticado, confirmação manual de publicação, falhas e nova tentativa, histórico e substituição de versões publicadas.
+- `/administracao/integracoes`: destinos do portal por categoria, modo de publicação, credenciais da API (token exibido uma vez; só o hash é armazenado) e histórico de falhas.
+- API autenticada `/api/integrations/portal/v1/...` pronta, **desabilitada por padrão**: o portal atual (GitHub Pages) não tem backend seguro para guardar o token.
+- Importação no portal: repositório `portal-contabilidade`, Administração → "Importar do AI Studio".
+- Documentação: [`docs/INTEGRACAO_PORTAL.md`](docs/INTEGRACAO_PORTAL.md).
+
 ## Limites atuais
 
-Geração de imagens por IA e transições completas de aprovação permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
+Geração de vídeos permanece desativada. A sincronização automática com o portal não foi testada entre as duas aplicações em produção (ver documentação). A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
 
 ## Sprint 3 — Conteúdo e modelos
 

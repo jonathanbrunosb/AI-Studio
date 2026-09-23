@@ -1,7 +1,7 @@
 import type { EditorFormat, EditorProject, EditorSeed } from "./editor-types";
 import { editorFormats } from "./editor-types";
 
-export const EDITOR_CUSTOM_PROPERTIES = ["editorId", "name", "storagePath", "assetId", "locked"];
+export const EDITOR_CUSTOM_PROPERTIES = ["editorId", "name", "storagePath", "assetId", "locked", "role"];
 
 export function createEmptyProject(
   format: EditorFormat,

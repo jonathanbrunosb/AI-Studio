@@ -1,10 +1,11 @@
-import { ArrowUpRight, CheckCircle2, Clock3, FileText, Layers3 } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, Clock3, FileText, Layers3, MessageSquareWarning } from "lucide-react";
 
 const tones = {
   blue: { icon: Layers3, box: "bg-blue-50 text-blue-700", line: "bg-blue-600" },
   slate: { icon: FileText, box: "bg-slate-100 text-slate-600", line: "bg-slate-500" },
   amber: { icon: Clock3, box: "bg-amber-50 text-amber-700", line: "bg-amber-500" },
   indigo: { icon: CheckCircle2, box: "bg-indigo-50 text-indigo-700", line: "bg-indigo-500" },
+  rose: { icon: MessageSquareWarning, box: "bg-rose-50 text-rose-700", line: "bg-rose-400" },
   emerald: { icon: ArrowUpRight, box: "bg-emerald-50 text-emerald-700", line: "bg-emerald-500" },
 };
 

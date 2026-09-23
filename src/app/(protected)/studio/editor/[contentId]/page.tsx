@@ -4,6 +4,9 @@ import { VisualEditor } from "@/components/studio/editor/visual-editor";
 import { requireUser } from "@/lib/auth/authorization";
 import { getBranding } from "@/lib/content/branding-service";
 import { loadEditorProject } from "@/lib/editor/editor-service";
+import { getProviderConfigurationStatus } from "@/lib/ai/providers/selected-provider";
+import { loadAiConfiguration } from "@/lib/ai/repository/supabase-generation-repository";
+import { listContentJobs } from "@/lib/ai/services/job-queries";
 
 export default async function VisualEditorPage({ params }: { params: Promise<{ contentId: string }> }) {
   const { contentId } = await params;
@@ -15,10 +18,18 @@ export default async function VisualEditorPage({ params }: { params: Promise<{ c
     && (roles.includes("admin") || content.created_by === user.id);
   if (!canEdit) redirect(`/studio?id=${content.id}`);
 
-  const [brand, editorData] = await Promise.all([
+  const [brand, editorData, aiConfig, initialJobs] = await Promise.all([
     getBranding(supabase),
     loadEditorProject(supabase, content),
+    loadAiConfiguration(supabase),
+    listContentJobs(supabase, content.id),
   ]);
+  const provider = getProviderConfigurationStatus();
+  const aiAvailability = !aiConfig.integrationEnabled
+    ? { available: false, reason: "A geração com IA foi desabilitada pelo administrador." }
+    : !provider.configured || !provider.serviceRoleConfigured
+      ? { available: false, reason: "A integração de IA está indisponível: o provedor ainda não foi configurado no servidor. Oriente o administrador a concluir a configuração em Administração › Inteligência Artificial." }
+      : { available: true, reason: null };
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -43,6 +54,9 @@ export default async function VisualEditorPage({ params }: { params: Promise<{ c
       initialHistory={editorData.history}
       templates={editorData.templates}
       userId={user.id}
+      aiModels={aiConfig.models.filter((model) => model.isEnabled)}
+      aiAvailability={aiAvailability}
+      initialJobs={initialJobs}
     />
   </div>;
 }

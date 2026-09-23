@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, Menu, Plus, Search } from "lucide-react";
+import { LogOut, Menu, Plus, Search } from "lucide-react";
+import { NotificationBell, type NotificationItem } from "./notification-bell";
 import { getPageTitle } from "@/lib/navigation";
 import { logoutAction } from "@/app/auth/actions";
 import type { AppRole } from "@/lib/auth/authorization";
 
-export function Topbar({ onOpenMobile, user }: { onOpenMobile: () => void; user: { fullName: string; email: string; roles: AppRole[] } }) {
+export function Topbar({ onOpenMobile, user, notifications }: { onOpenMobile: () => void; user: { fullName: string; email: string; roles: AppRole[] }; notifications: { items: NotificationItem[]; unread: number } }) {
   const pathname = usePathname();
   const title = getPageTitle(pathname);
   const initials = user.fullName.split(" ").filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
@@ -25,7 +26,7 @@ export function Topbar({ onOpenMobile, user }: { onOpenMobile: () => void; user:
           <kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px]">⌘ K</kbd>
         </label>
         {user.roles.some((role) => role === "admin" || role === "editor") && <Link href="/studio" aria-label="Criar conteúdo" className="primary-button h-10 px-3 md:px-4"><Plus size={17} /><span className="hidden sm:inline">Criar conteúdo</span></Link>}
-        <button aria-label="Notificações" className="relative grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"><Bell size={18} /><span className="absolute right-2 top-2 size-2 rounded-full border-2 border-white bg-amber-500" /></button>
+        <NotificationBell items={notifications.items} unread={notifications.unread} />
         <div className="flex items-center gap-2 rounded-xl pl-1 text-left">
           <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-500 text-sm font-bold text-white">{initials || "AI"}</span>
           <span className="hidden 2xl:block"><span className="block max-w-40 truncate text-sm font-bold text-slate-800">{user.fullName}</span><span className="block max-w-40 truncate text-[11px] text-slate-500">{user.email}</span></span>
