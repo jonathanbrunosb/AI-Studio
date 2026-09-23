@@ -1,10 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { loginSchema, passwordSchema, recoverySchema } from "@/lib/validation/auth";
 import { safeInternalRedirect } from "@/lib/auth/routes";
+import { getConfiguredAppOrigin } from "@/lib/auth/app-url";
 
 export type AuthActionState = { status: "idle" | "error" | "success"; message?: string; fieldErrors?: Record<string, string[]> };
 
@@ -29,8 +29,8 @@ export async function requestPasswordRecovery(_: AuthActionState, formData: Form
   const parsed = recoverySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { status: "error", message: "Informe um e-mail válido.", fieldErrors: parsed.error.flatten().fieldErrors };
 
-  const requestHeaders = await headers();
-  const origin = process.env.NEXT_PUBLIC_APP_URL || requestHeaders.get("origin") || "http://localhost:3000";
+  const origin = getConfiguredAppOrigin();
+  if (!origin) return { status: "error", message: "A recuperação de senha está temporariamente indisponível." };
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo: `${origin}/auth/callback?next=/atualizar-senha` });
 

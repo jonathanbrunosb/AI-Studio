@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/authorization";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { accessMutationSchema, inviteUserSchema, roleMutationSchema } from "@/lib/validation/admin";
+import { getConfiguredAppOrigin } from "@/lib/auth/app-url";
 
 function adminRedirect(kind: "success" | "error", message: string): never {
   redirect(`/administracao?${kind}=${encodeURIComponent(message)}`);
@@ -17,7 +18,9 @@ export async function inviteUserAction(formData: FormData) {
 
   let admin;
   try { admin = createAdminClient(); } catch { adminRedirect("error", "Configure SUPABASE_SERVICE_ROLE_KEY no servidor para habilitar convites."); }
-  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback?next=/atualizar-senha`;
+  const appOrigin = getConfiguredAppOrigin();
+  if (!appOrigin) adminRedirect("error", "Configure NEXT_PUBLIC_APP_URL com a origem HTTPS oficial antes de enviar convites.");
+  const redirectTo = `${appOrigin}/auth/callback?next=/atualizar-senha`;
   const { data, error } = await admin.auth.admin.inviteUserByEmail(parsed.data.email, {
     redirectTo,
     data: { full_name: parsed.data.full_name, department: parsed.data.department || null },

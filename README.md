@@ -2,6 +2,8 @@
 
 Aplicação corporativa para criação, gestão e futura aprovação de comunicados, newsletters e materiais visuais da Gerência de Contabilidade.
 
+O diagnóstico de prontidão, os gates de homologação e o roteiro de implantação estão em [`AI_STUDIO_PLANO_ENTRADA_OPERACAO.md`](AI_STUDIO_PLANO_ENTRADA_OPERACAO.md).
+
 ## Stack
 
 - Next.js 16 com App Router, Server Actions e `proxy.ts`.
@@ -118,12 +120,20 @@ Testes completos de login válido, logout, convite e ciclo persistente exigem um
 
 ## Railway
 
-- Build command: `npm run build`
-- Start command: `npm run start`
+- A configuração versionada está em `railway.json`.
+- Build command: `npm ci && npm run build`
+- Start command: `npm start`
+- Health check: `GET /api/health` (HTTP 200 somente quando a configuração pública do Supabase está presente).
 - Node.js: versão 22 ou superior.
 - Cadastre no Railway todas as variáveis listadas em `.env.example`.
 - Use uma chave estável em `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` para manter Server Actions consistentes entre réplicas e deploys.
 - Nunca exponha a chave administrativa como variável pública.
+
+O workflow `.github/workflows/ci.yml` executa typecheck, lint, testes e build em pushes e pull requests. A existência desses arquivos não cria nem publica um serviço Railway; o primeiro deploy continua dependendo de autorização e configuração explícitas.
+
+### Histórico de migrações
+
+Os nomes dos arquivos em `supabase/migrations` espelham as versões registradas no projeto `AI-Studio`. As três migrações intermediárias da primeira tentativa da Sprint 5 são marcadores vazios: foram aplicadas diretamente, revertidas pela versão `20260923001244` e substituídas pelo esquema definitivo `20260923001321`. Os dois marcadores finais representam o bootstrap específico do primeiro administrador sem versionar identificadores ou dados pessoais. Essa sequência mantém `supabase migration list` alinhado e permite reproduzir o estado final em projetos novos.
 
 ## Editor visual — Sprint 4
 
