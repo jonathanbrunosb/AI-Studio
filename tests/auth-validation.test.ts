@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loginSchema, passwordSchema, recoverySchema } from "@/lib/validation/auth";
-import { matchesRoutePrefix, protectedPrefixes, safeInternalRedirect } from "@/lib/auth/routes";
+import { appUrl, matchesRoutePrefix, protectedPrefixes, safeInternalRedirect } from "@/lib/auth/routes";
 
 describe("autenticação e rotas", () => {
   it("valida credenciais estruturadas sem aceitar senha vazia", () => {
@@ -28,5 +28,19 @@ describe("autenticação e rotas", () => {
     expect(safeInternalRedirect("/biblioteca")).toBe("/biblioteca");
     expect(safeInternalRedirect("//dominio-malicioso.example")).toBe("/dashboard");
     expect(safeInternalRedirect("https://dominio-malicioso.example")).toBe("/dashboard");
+  });
+});
+
+describe("URL pública de redirecionamento", () => {
+  it("usa NEXT_PUBLIC_APP_URL em vez do host interno da requisição", () => {
+    expect(appUrl("/dashboard", "http://localhost:8080/auth/callback", "https://aistudio.example.com").href).toBe("https://aistudio.example.com/dashboard");
+  });
+  it("não permite redirecionar para outro domínio", () => {
+    expect(appUrl("//evil.example.com", "http://localhost:8080/x", "https://aistudio.example.com").href).toBe("https://aistudio.example.com/");
+    expect(appUrl("https://evil.example.com", "http://localhost:8080/x", "https://aistudio.example.com").origin).toBe("https://aistudio.example.com");
+  });
+  it("sem configuração válida, usa a origem da requisição", () => {
+    expect(appUrl("/login", "http://127.0.0.1:3100/x", undefined).href).toBe("http://127.0.0.1:3100/login");
+    expect(appUrl("/login", "http://127.0.0.1:3100/x", "não-url").href).toBe("http://127.0.0.1:3100/login");
   });
 });

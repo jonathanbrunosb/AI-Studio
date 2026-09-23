@@ -1,4 +1,5 @@
 import type { AspectRatio, ResolutionId } from "../models/model-types";
+import { e2eFalBaseUrl } from "../providers/test-mode";
 
 export const acceptedImageTypes = ["image/png", "image/jpeg", "image/webp"] as const;
 export type AcceptedImageType = (typeof acceptedImageTypes)[number];
@@ -61,6 +62,8 @@ const resultHosts = ["fal.media", "fal.run", "fal.ai"];
 export function isAllowedResultUrl(rawUrl: string, extraHosts: string[] = []) {
   try {
     const url = new URL(rawUrl);
+    const testBase = e2eFalBaseUrl();
+    if (testBase && url.origin === testBase) return true;
     const hosts = [...resultHosts, ...extraHosts];
     return url.protocol === "https:" && hosts.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
   } catch {

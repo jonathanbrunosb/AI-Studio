@@ -11,6 +11,7 @@ import { buildPublicationPackage } from "@/lib/publications/package-builder";
 import { canPrepare, publicationErrorMessage, validatePublicationData, type EditorialSnapshot } from "@/lib/publications/publication-rules";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/types/database";
+import { log } from "@/lib/observability/logger";
 import type { ContentCategory, ContentStatus } from "@/types/content";
 
 export type PublicationActionResult = { ok: boolean; message: string; publicationId?: string; stateChanged?: boolean };
@@ -100,6 +101,7 @@ export async function preparePublicationAction(formData: FormData): Promise<Publ
     admin.storage.from("publication-packages").upload(`${folder}/${built.fileName}`, built.zip, { contentType: "application/zip", upsert: true }),
     admin.storage.from("publication-packages").upload(`${folder}/${built.manifest.image.filename}`, bytes, { contentType: "image/png", upsert: true }),
   ]);
+  if (zipUpload.error || imageUpload.error) log("error", "storage.failed", { operation: "publication_package_upload", contentId: content.id });
   if (zipUpload.error || imageUpload.error) return { ok: false, message: "Falha ao armazenar o pacote. Nenhuma alteração foi registrada; tente novamente." };
 
   const { error } = await admin.rpc("register_publication_package", {
@@ -108,7 +110,10 @@ export async function preparePublicationAction(formData: FormData): Promise<Publ
     p_package_sha256: built.packageSha256, p_package_path: `${folder}/${built.fileName}`, p_image_path: `${folder}/${built.manifest.image.filename}`, p_signed: built.signed,
   });
   refresh();
-  if (error) return { ok: false, message: publicationErrorMessage(error.message), stateChanged: /CONFLICT|ALREADY|VERSION/.test(error.message) };
+  if (error) {
+    log("warn", "publication.failed", { operation: "register_package", code: error.message.match(/[A-Z_]{5,}/)?.[0] ?? "unknown" });
+    return { ok: false, message: publicationErrorMessage(error.message), stateChanged: /CONFLICT|ALREADY|VERSION/.test(error.message) };
+  }
   return { ok: true, message: built.signed ? "Pacote preparado e assinado. Baixe o ZIP para importação no portal." : "Pacote preparado (sem assinatura: a chave de assinatura não está configurada).", publicationId };
 }
 
@@ -133,7 +138,10 @@ export async function transitionPublicationAction(input: unknown): Promise<Publi
     p_external_id: data.externalId || null, p_external_url: data.externalUrl || null, p_message: data.message ?? null,
   });
   refresh();
-  if (error) return { ok: false, message: publicationErrorMessage(error.message), stateChanged: /STATE_CHANGED/.test(error.message) };
+  if (error) {
+    log("warn", "publication.failed", { operation: data.action, code: error.message.match(/[A-Z_]{5,}/)?.[0] ?? "unknown" });
+    return { ok: false, message: publicationErrorMessage(error.message), stateChanged: /STATE_CHANGED/.test(error.message) };
+  }
   const messages = { confirm_published: "Publicação confirmada e registrada.", mark_pending: "Registrado: aguardando publicação no portal.", fail: "Falha registrada. É possível tentar novamente.", retry: "Publicação liberada para nova tentativa." };
   return { ok: true, message: messages[data.action] };
 }

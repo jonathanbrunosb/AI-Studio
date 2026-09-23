@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActiveSelection, Canvas, Circle, FabricImage, FabricObject, Group, Line, Rect, Textbox,
 } from "fabric";
+import "@/lib/editor/fabric-setup";
 import type { EditorProject, EditorSeed, MediaAsset, TemplateOption } from "@/lib/editor/editor-types";
 import { createEditorId, EDITOR_CUSTOM_PROPERTIES, getInitialSeedElements } from "@/lib/editor/editor-utils";
 import { serializeCanvas } from "@/lib/editor/editor-serialization";
@@ -29,7 +30,7 @@ function decorate<T extends FabricObject>(object: T, name: string, prefix: strin
   return object;
 }
 
-export function useEditor(initialProject: EditorProject, seed: EditorSeed, onProjectChange: (project: EditorProject) => void) {
+export function useEditor(initialProject: EditorProject, seed: EditorSeed, onProjectChange: (project: EditorProject, meta?: { initial?: boolean }) => void) {
   const elementRef = useRef<HTMLCanvasElement>(null);
   const canvasRef = useRef<Canvas | null>(null);
   const projectRef = useRef(initialProject);
@@ -93,7 +94,9 @@ export function useEditor(initialProject: EditorProject, seed: EditorSeed, onPro
   }, [history, onProjectChange, readLayers, readSelected]);
 
   const seedCanvas = useCallback((canvas: Canvas, project: EditorProject) => {
-    const [bar, title, subtitle, body, footer] = getInitialSeedElements(seed, project.canvas.width, project.canvas.height);
+    // `type` é somente leitura no Fabric 7: repassá-lo ao construtor lança exceção e interrompe a inicialização.
+    const [bar, title, subtitle, body, footer] = getInitialSeedElements(seed, project.canvas.width, project.canvas.height)
+      .map((element) => Object.fromEntries(Object.entries(element).filter(([key]) => key !== "type")));
     const objects = [
       decorate(new Rect(bar), String(bar.name), "brand"),
       decorate(new Textbox(String(title.text), title), String(title.name), "title"),
@@ -121,7 +124,7 @@ export function useEditor(initialProject: EditorProject, seed: EditorSeed, onPro
       restoring.current = false;
       const project = serializeCanvas(canvas, initialProject);
       projectRef.current = project;
-      onProjectChange(project);
+      onProjectChange(project, { initial: true });
       history.reset(JSON.stringify(project));
       readLayers(); setReady(true);
     };

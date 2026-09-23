@@ -64,10 +64,15 @@ export function useEditorPersistence(contentId: string, project: EditorProject |
     return () => window.removeEventListener("beforeunload", beforeUnload);
   }, [status]);
 
+  /** Define a composição carregada do banco como já salva (evita regravar a versão ao apenas abrir o editor). */
+  const markBaseline = useCallback((loaded: EditorProject) => {
+    savedFingerprint.current = projectFingerprint(loaded);
+  }, []);
+
   const saveNow = useCallback((checkpoint = true) => {
     if (!latestProject.current) return Promise.resolve(false);
     return persist(latestProject.current, checkpoint);
   }, [persist]);
 
-  return { status, lastSavedAt, saveNow };
+  return { status, lastSavedAt, saveNow, markBaseline };
 }

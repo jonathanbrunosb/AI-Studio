@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, History, Send, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useEditor } from "@/hooks/use-editor";
@@ -25,15 +25,29 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
   const [project, setProject] = useState<EditorProject>(initialProject);
   const [media, setMedia] = useState(initialMedia);
   const [zoom, setZoom] = useState(.45);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftChoice, setLeftOpen] = useState<boolean | null>(null);
+  const [rightChoice, setRightOpen] = useState<boolean | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const router = useRouter();
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const onProjectChange = useCallback((next: EditorProject) => setProject(next), []);
+  const markBaseline = useRef<((loaded: EditorProject) => void) | null>(null);
+  const hasSavedVersion = initialProject.elements.length > 0;
+  const onProjectChange = useCallback((next: EditorProject, meta?: { initial?: boolean }) => {
+    // Composição já persistida: o resultado do carregamento é a linha de base (modelos novos continuam sendo salvos).
+    if (meta?.initial && hasSavedVersion) markBaseline.current?.(next);
+    setProject(next);
+  }, [hasSavedVersion]);
   const editor = useEditor(initialProject, seed, onProjectChange);
   const persistence = useEditorPersistence(contentId, project);
+  useEffect(() => { markBaseline.current = persistence.markBaseline; }, [persistence.markBaseline]);
+
+  // Em telas menores os painéis sobrepõem o canvas: começam recolhidos e seguem acessíveis pelos botões laterais.
+  // No servidor assume-se desktop; a escolha explícita do usuário prevalece sobre o padrão por largura.
+  const viewportWidth = useSyncExternalStore(subscribeResize, () => window.innerWidth, () => 1920);
+  const leftOpen = leftChoice ?? viewportWidth >= 1024;
+  const rightOpen = rightChoice ?? viewportWidth >= 1280;
+  const compact = viewportWidth < 768;
 
   const canvasWidth = project.canvas.width;
   const canvasHeight = project.canvas.height;
@@ -73,6 +87,7 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
       onZoom={setZoom} onUndo={() => void editor.undo()} onRedo={() => void editor.redo()}
       onDuplicate={() => void editor.duplicateSelected()} onDelete={editor.removeSelected} onGroup={editor.groupSelected}
       onSave={() => void saveCheckpoint()} onExport={() => setExportOpen(true)} />
+    {compact && <p role="note" className="border-b border-amber-100 bg-amber-50 px-4 py-2 text-xs text-amber-800">O editor visual é otimizado para telas a partir de 1024 px. Neste dispositivo, prefira revisar e consultar conteúdos.</p>}
     <div className="flex h-[calc(100vh-235px)] min-h-[620px]">
       <div className={`${leftOpen ? "block" : "hidden"} absolute z-20 h-[calc(100vh-235px)] shadow-xl lg:relative lg:block lg:shadow-none`}>
         <EditorSidebar contentId={contentId} userId={userId} media={media} templates={templates} layers={editor.layers}
@@ -80,7 +95,7 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
           onText={editor.addText} onShape={editor.addShape} onLayerSelect={editor.selectLayer} onLayerAction={editor.mutateLayer}
           onTemplate={(template, width, height) => void editor.applyTemplate(template, width, height)} />
       </div>
-      <button className="z-30 grid w-7 shrink-0 place-items-center border-r border-slate-200 bg-white text-slate-400 hover:text-blue-700" onClick={() => setLeftOpen((value) => !value)} title="Recolher ferramentas">{leftOpen ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}</button>
+      <button className="z-30 grid w-7 shrink-0 place-items-center border-r border-slate-200 bg-white text-slate-400 hover:text-blue-700" onClick={() => setLeftOpen(!leftOpen)} title="Recolher ferramentas">{leftOpen ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}</button>
       <div ref={workspaceRef} className="relative flex min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
           {Object.entries(editorFormats).map(([key, format]) => <button key={key} className={`rounded-lg px-3 py-1.5 text-[11px] font-bold ${project.canvas.width === format.width && project.canvas.height === format.height ? "bg-blue-700 text-white" : "bg-white text-slate-600"}`} onClick={() => resize(format.width, format.height)}>{format.label}</button>)}
@@ -90,7 +105,7 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
         {historyOpen && <div className="absolute right-3 top-12 z-40 max-h-80 w-72 overflow-auto rounded-xl border border-slate-200 bg-white p-3 shadow-xl"><p className="mb-2 text-xs font-bold text-slate-700">Versões salvas</p>{initialHistory.map((version) => <button key={version.id} disabled={!version.project} onClick={() => { if (version.project && window.confirm("Recuperar esta composição? A versão atual permanecerá no histórico de desfazer.")) { void editor.loadProject(version.project); setHistoryOpen(false); } }} className="mb-1 w-full rounded-lg p-2 text-left hover:bg-slate-50 disabled:opacity-50"><span className="block text-xs font-bold">v{version.versionNumber} · {version.label ?? version.kind}</span><span className="text-[10px] text-slate-400">{new Date(version.updatedAt).toLocaleString("pt-BR")}</span></button>)}{!initialHistory.length && <p className="p-3 text-center text-xs text-slate-400">O primeiro salvamento criará o histórico.</p>}</div>}
         <EditorCanvas canvasRef={editor.elementRef} width={project.canvas.width} height={project.canvas.height} zoom={zoom} />
       </div>
-      <button className="z-30 grid w-7 shrink-0 place-items-center border-l border-slate-200 bg-white text-slate-400 hover:text-blue-700" onClick={() => setRightOpen((value) => !value)} title="Recolher propriedades">{rightOpen ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}</button>
+      <button className="z-30 grid w-7 shrink-0 place-items-center border-l border-slate-200 bg-white text-slate-400 hover:text-blue-700" onClick={() => setRightOpen(!rightOpen)} title="Recolher propriedades">{rightOpen ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}</button>
       <div className={`${rightOpen ? "block" : "hidden"} absolute right-0 z-20 h-[calc(100vh-235px)] shadow-xl xl:relative xl:block xl:shadow-none`}>
         <div className="flex h-full flex-col bg-white">
           <div role="tablist" className="flex shrink-0 border-b border-l border-slate-200">
@@ -111,4 +126,9 @@ export function VisualEditor({ contentId, contentTitle, seed, initialProject, in
     {persistence.status === "error" && <div role="alert" className="flex items-center justify-between bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700"><span>As alterações continuam nesta sessão, mas não foram salvas.</span><button className="underline" onClick={() => void persistence.saveNow(false)}>Tentar novamente</button></div>}
     <ExportDialog open={exportOpen} title={contentTitle} canvas={editor.getCanvas()} onClose={() => setExportOpen(false)} />
   </section>;
+}
+
+function subscribeResize(onChange: () => void) {
+  window.addEventListener("resize", onChange);
+  return () => window.removeEventListener("resize", onChange);
 }

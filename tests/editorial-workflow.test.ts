@@ -45,8 +45,11 @@ describe("matriz de permissões editoriais", () => {
     expect(canDecide(["editor"], "x", { created_by: AUTHOR, status: "in_review", assigned_reviewer_id: null }, AUTHOR)).toBe(false);
   });
 
-  it("nova versão somente a partir de conteúdo aprovado; arquivamento pelo autor ou admin", () => {
+  it("nova versão a partir de conteúdo aprovado ou publicado; arquivamento pelo autor ou admin", () => {
     expect(canCreateNewVersion(["editor"], AUTHOR, { created_by: AUTHOR, status: "approved" })).toBe(true);
+    expect(canCreateNewVersion(["editor"], AUTHOR, { created_by: AUTHOR, status: "published" })).toBe(true);
+    expect(canCreateNewVersion(["editor"], "outro", { created_by: AUTHOR, status: "published" })).toBe(false);
+    expect(canCreateNewVersion(["approver"], AUTHOR, { created_by: AUTHOR, status: "published" })).toBe(false);
     expect(canCreateNewVersion(["editor"], AUTHOR, { created_by: AUTHOR, status: "in_review" })).toBe(false);
     expect(canArchive(["editor"], AUTHOR, { created_by: AUTHOR, status: "approved" })).toBe(true);
     expect(canArchive(["approver"], APPROVER, { created_by: AUTHOR, status: "approved" })).toBe(false);

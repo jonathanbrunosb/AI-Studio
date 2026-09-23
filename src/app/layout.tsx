@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,7 +7,9 @@ export const metadata: Metadata = {
   description: "Ambiente integrado para criação, gestão e aprovação de conteúdos da Contabilidade.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+// Renderização dinâmica em todas as páginas: necessária para aplicar o nonce da CSP a cada requisição.
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  await connection();
   return (
     <html lang="pt-BR">
       <body>{children}</body>

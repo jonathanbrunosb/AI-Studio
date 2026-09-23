@@ -45,7 +45,8 @@ export function canDecide(roles: AppRole[], userId: string, content: { created_b
 }
 
 export function canCreateNewVersion(roles: AppRole[], userId: string, content: { created_by: string; status: ContentStatus }) {
-  return content.status === "approved" && canCreateContent(roles) && (roles.includes("admin") || content.created_by === userId);
+  // Coerente com create_new_content_version (Sprint 7): também a partir do publicado, preservando a publicação anterior.
+  return (content.status === "approved" || content.status === "published") && canCreateContent(roles) && (roles.includes("admin") || content.created_by === userId);
 }
 
 export function canArchive(roles: AppRole[], userId: string, content: { created_by: string; status: ContentStatus }) {
