@@ -1,7 +1,8 @@
 # Implantação, ambientes, backup e rollback
 
-> **Estado em 23/09/2026:** nenhum serviço do AI Studio foi criado no Railway. Esta documentação prepara a implantação;
-> a execução em produção depende de aprovação explícita do responsável.
+> **Estado em 23/09/2026:** projeto `AI Studio` e serviço `ai-studio-web` criados no Railway a partir da branch `main`.
+> O commit `22b11fa` concluiu build e health check. O ambiente Railway ainda se chama `production`, mas deve ser tratado como homologação até o go-live formal.
+> Domínio temporário: `https://ai-studio-web-production.up.railway.app`.
 
 ## 1. Estratégia de ambientes
 
@@ -18,6 +19,7 @@ Regras:
 - Migrações seguem sempre a ordem CI → homologação → produção, pelo mesmo arquivo versionado em `supabase/migrations`.
 - Chaves (`SUPABASE_SERVICE_ROLE_KEY`, `FAL_KEY`, `PORTAL_SIGNING_PRIVATE_KEY`, `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`) são **distintas por ambiente**.
 - `E2E_MODE` e `E2E_FAL_BASE_URL` nunca são definidas no Railway (a aplicação as ignora quando detecta variáveis do Railway).
+- O serviço atual usa `PORT=3000`, alinhada ao target do domínio Railway.
 
 ## 2. Variáveis de ambiente
 
@@ -46,17 +48,17 @@ Na inicialização a aplicação registra `config.invalid` (nomes das variáveis
 
 > **Atenção:** o Railway declarou o Config as Code (`railway.json`) **descontinuado**. Novos serviços não podem mais adotá-lo; serviços existentes têm suporte somente até **01/12/2026**. No primeiro deploy, configurar build/start/healthcheck pelo painel ou CLI e, após vincular o projeto, executar `railway config pull` para gerar a Infrastructure as Code em `.railway/railway.ts`. Referência: [Railway — Config as Code](https://docs.railway.com/config-as-code).
 
-### Passo a passo (primeira implantação — requer aprovação)
+### Implantação atual e próximos passos
 
-1. Criar projeto `ai-studio` no Railway com os ambientes `homologacao` e `production`; conectar o repositório `jonathanbrunosb/AI-Studio`, branch `main`.
-2. No serviço de homologação, configurar Railpack, build `npm run build`, start `npm run start`, healthcheck `/api/health`, timeout 120 s, reinício `ON_FAILURE` (5 tentativas) e draining de 15 s. Não depender de `railway.json` em serviço novo.
-3. Vincular a Railway CLI ao projeto e executar `railway config pull`; revisar e versionar `.railway/railway.ts` sem valores de segredo antes de aplicar IaC.
-4. Cadastrar as variáveis da §2 em cada ambiente (valores próprios de cada ambiente).
-5. Gerar domínio (Railway ou domínio corporativo). Atualizar `NEXT_PUBLIC_APP_URL`.
-6. No Supabase do ambiente: **Authentication → URL Configuration** — Site URL = `NEXT_PUBLIC_APP_URL`; Redirect URLs = `<APP_URL>/auth/callback**` (o link de redefinição usa `/auth/callback?next=/atualizar-senha`).
-7. Aplicar as migrações pendentes no Supabase do ambiente (em ordem; conferir com `list_migrations`).
-8. Deploy. Aguardar healthcheck verde e executar as verificações pós-implantação (§4).
-9. Somente após validar HTTPS no domínio e subdomínios: `ENABLE_HSTS=true` e novo deploy.
+1. **Concluído:** projeto `AI Studio`, serviço `ai-studio-web`, branch `main`, Railpack, build/start, health check, reinício e domínio temporário configurados.
+2. **Concluído:** variáveis públicas/estruturais da §2 cadastradas, incluindo `PORT=3000`; segredos opcionais/privilegiados permanecem ausentes.
+3. Renomear o ambiente atual para `homologacao` ou criar ambiente separado e reservar `production` para o go-live formal.
+4. Vincular a Railway CLI ao projeto e executar `railway config pull`; revisar e versionar `.railway/railway.ts` sem valores de segredo antes de aplicar IaC.
+5. No Supabase do ambiente: **Authentication → URL Configuration** — Site URL = `https://ai-studio-web-production.up.railway.app`; Redirect URLs = `https://ai-studio-web-production.up.railway.app/auth/callback` (o link de redefinição usa `/auth/callback?next=/atualizar-senha`).
+6. Validar externamente HTTPS, `/api/health`, `/login` e o redirecionamento de `/dashboard` conforme §4.
+7. Cadastrar `SUPABASE_SERVICE_ROLE_KEY` somente no Railway quando autorizado; cadastrar `FAL_KEY` e `PORTAL_SIGNING_PRIVATE_KEY` apenas após as aprovações correspondentes.
+8. Somente após validar HTTPS no domínio e subdomínios: `ENABLE_HSTS=true` e novo deploy.
+9. Ensaiar rollback para o deploy anterior e retornar ao deploy atual, registrando o resultado.
 
 ## 4. Verificações pós-implantação
 

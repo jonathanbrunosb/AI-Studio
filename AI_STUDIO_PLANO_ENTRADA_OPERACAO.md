@@ -1,9 +1,9 @@
 # AI Studio — Plano de Entrada em Operação
 
 **Data da auditoria:** 22/09/2026; atualização técnica em 23/09/2026
-**Repositório avaliado:** `jonathanbrunosb/AI-Studio`, branch `main`, commit-base da atualização `77c69e7`
+**Repositório avaliado:** `jonathanbrunosb/AI-Studio`, branch `main`, commit implantado `22b11fa`
 **Supabase avaliado:** projeto `AI-Studio` (`idrseyhwkhlvedfgzecb`)
-**Conclusão:** **não liberar em produção ainda**. O produto possui uma base funcional ampla e build reproduzível, mas ainda depende de implantação, credenciais seguras e homologação autenticada ponta a ponta. O alerta técnico dos RPCs privilegiados foi corrigido; permanece uma configuração de Auth e dependências externas descritas neste documento.
+**Conclusão:** **não liberar em produção ainda**. O produto possui uma base funcional ampla, build reproduzível e implantação Railway saudável, mas ainda depende de credenciais seguras e homologação autenticada ponta a ponta. O alerta técnico dos RPCs privilegiados foi corrigido; permanecem configurações de Auth e dependências externas descritas neste documento.
 
 ## 1. Critérios de classificação
 
@@ -27,7 +27,7 @@ Código existente, interface renderizada e migração aplicada são evidências 
 - Após o hardening de 23/09, o Security Advisor do Supabase retorna somente o alerta de proteção contra senhas vazadas desabilitada. Os seis RPCs públicos passaram a ser wrappers `SECURITY INVOKER`; suas implementações privilegiadas ficam em `app_private`, com `search_path=''`, grants mínimos e sem execução anônima.
 - A IA usa fal.ai. Os modelos estão habilitados no banco, porém `FAL_KEY` e `SUPABASE_SERVICE_ROLE_KEY` não estão disponíveis no ambiente local auditado. Nenhum crédito foi consumido e nenhuma geração real foi executada.
 - O pacote ZIP do AI Studio é interoperável com o importador do Portal no nível de código: 7 testes no AI Studio e 7 testes no Portal passaram. Não houve importação/publicação em ambiente de homologação.
-- Não existe projeto Railway chamado AI Studio entre os quatro projetos acessíveis. Não há deploy, domínio, certificado, logs ou métricas do AI Studio para validar.
+- O projeto Railway `AI Studio` e o serviço `ai-studio-web` foram criados a partir de `jonathanbrunosb/AI-Studio`, branch `main`. O deploy do commit `22b11fa` passou no build e no health check `/api/health`; o domínio temporário é `https://ai-studio-web-production.up.railway.app`. O ambiente Railway ainda se chama `production`, mas deve ser tratado como homologação até a autorização formal de go-live.
 - Foram corrigidas lacunas de prontidão: headers de segurança, health check, configuração de deploy documentada, CI, validação segura da origem de convites/recuperação, alinhamento do histórico de migrações, fronteira dos RPCs privilegiados e cobertura dos 14 índices de chaves estrangeiras apontados pelo Advisor.
 
 ## 3. Estrutura encontrada
@@ -42,7 +42,7 @@ Código existente, interface renderizada e migração aplicada são evidências 
 | IA | Provedor fal.ai, fila, polling, Storage e governança | Implementado com mocks; provedor real não configurado. |
 | Editorial | RPCs transacionais, fila, decisões, notificações e versões congeladas | Implementado; fluxo real entre dois usuários não executado. |
 | Portal | Central de Publicações, ZIP, assinatura e API opcional | Interoperabilidade de código validada; operação real pendente. |
-| Deploy | `/api/health`, CI e parâmetros Railway documentados; `railway.json` identificado como legado | Nenhum serviço Railway do AI Studio existe; a IaC depende do projeto autorizado. |
+| Deploy | `/api/health`, CI e parâmetros Railway documentados; projeto/serviço criados e deploy saudável no Railway | Domínio temporário criado; validação externa HTTPS ficou limitada pela inspeção TLS da rede corporativa. Ambiente ainda requer homologação e segregação formal antes de produção. |
 
 Dados mockados remanescentes não foram encontrados nas jornadas ativas de dashboard/IA. Os testes de IA usam provedor simulado deliberadamente e não representam integração real.
 
@@ -57,7 +57,7 @@ Dados mockados remanescentes não foram encontrados nas jornadas ativas de dashb
 | 5 — IA | 🟡 Pendente de configuração | fal.ai Queue API, modelos, cotas, referências, cancelamento, Storage, administração e 30 testes simulados estão implementados. | Sem `FAL_KEY` e `SUPABASE_SERVICE_ROLE_KEY`; geração real não testada. Modelos habilitados no banco devem permanecer indisponíveis na UI até as chaves e autorização de custo existirem. |
 | 6 — Gestão editorial | ✅ Validado tecnicamente | Playwright executou envio, ajustes, reenvio, aprovação, bloqueio da versão, autoaprovação recusada e arquivamento auditado com três contas distintas. | Falta homologação humana com usuários corporativos autorizados. |
 | 7 — Portal | 🟡 Pendente de homologação | ZIP, manifesto, SHA-256, assinatura, confirmação e API opcional existem. O E2E validou o pacote com o módulo real do Portal, recusou adulteração/chave divergente e preservou a publicação anterior. | Falta chave corporativa e importação entre os dois ambientes implantados; API automática permanece desabilitada. |
-| 8 — QA e implantação | 🟡 Pendente de configuração | 97 testes Vitest, 8 suítes SQL, 38 testes Playwright, lint, typecheck, build, audit, CI, headers, health check, logs estruturados e evidências responsivas/desempenho estão presentes. | Não há Railway/Supabase de homologação, execução confirmada do CI hospedado, DAST independente, monitoramento externo, teste de restauração nem homologação corporativa. |
+| 8 — QA e implantação | 🟡 Pendente de configuração | 97 testes Vitest, 8 suítes SQL, 38 testes Playwright, lint, typecheck, build, audit, CI, headers, health check e logs estruturados estão presentes. O Railway concluiu build e health check do commit `22b11fa`. | Falta ambiente Supabase separado de homologação, validação HTTPS externa fora da rede corporativa, DAST independente, monitoramento externo, teste de rollback/restauração e homologação corporativa. |
 
 ## 5. Supabase
 
@@ -125,11 +125,18 @@ Não foi executado teste real porque não há chave e não houve autorização p
 
 ## 7. Railway
 
-**Status: 🔴 Não implementado no ambiente; configuração de código preparada.**
+**Status: 🟡 Implantado para homologação; pendências externas permanecem.**
 
-A conta conectada possui quatro projetos (`ifrs`, `primosports-system`, `giro-certo`, `radar-financeiro`) e nenhum projeto AI Studio. Portanto não existem serviço, branch, deploy, domínio, HTTPS, logs, métricas, variáveis ou rollback do AI Studio para consultar.
+- Projeto: `AI Studio`; ambiente atual: `production`; serviço: `ai-studio-web`.
+- Fonte: `jonathanbrunosb/AI-Studio`, branch `main`, commit `22b11fa`.
+- Build: Railpack com `npm run build`; start: `npm run start`; `PORT=3000`.
+- Health check: `/api/health`, timeout 120 s, aprovado na primeira tentativa do deploy consolidado.
+- Reinício: `ON_FAILURE`, máximo de 5 tentativas.
+- Domínio temporário: `https://ai-studio-web-production.up.railway.app`.
+- Variáveis configuradas sem exposição de valores: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_APP_URL`, `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`, `ENABLE_HSTS`, `AI_IMAGE_PROVIDER` e `PORT`.
+- Permanecem ausentes, intencionalmente: `SUPABASE_SERVICE_ROLE_KEY`, `FAL_KEY` e `PORTAL_SIGNING_PRIVATE_KEY`.
 
-O repositório contém `/api/health`, scripts de build/start e os parâmetros de health check/reinício. O `railway.json` existente é apenas legado: novos serviços devem ser configurados pelo painel/CLI e depois capturados em `.railway/railway.ts`, conforme a [documentação oficial de IaC](https://docs.railway.com/config-as-code). O Railway só troca o tráfego após o health check retornar 200, conforme a [documentação de health check](https://docs.railway.com/guides/roll-back-bad-deploy#prevent-bad-deploys-with-a-healthcheck).
+O Railway concluiu o build, iniciou o Next.js e aprovou o health check. A tentativa de smoke test público desta estação foi bloqueada por erro TLS da rede corporativa; portanto, o certificado e as rotas externas devem ser confirmados de uma rede independente. O ambiente deve ser renomeado para `homologacao` ou substituído por um ambiente separado antes de qualquer promoção formal. O `railway.json` permanece legado; capturar a configuração futura em `.railway/railway.ts`, conforme a [documentação oficial de IaC](https://docs.railway.com/config-as-code).
 
 ## 8. Integração com o Portal da Contabilidade
 
@@ -175,30 +182,27 @@ Os 14 alertas de chaves estrangeiras sem índice que ainda estavam ativos em 23/
 | Grupo B — configurações que dependem do usuário | P0-01, P0-02, P0-03, P1-02, P1-03 e P1-04. |
 | Grupo C — dependências corporativas | Autorização do fal.ai, orçamento, tratamento de dados, rede corporativa, domínio, cofre de segredos e aprovação formal de produção. |
 
-### Pendência P0-01 — Implantação Railway inexistente
+### Pendência P0-01 — Concluir homologação do Railway
 
 **Prioridade:** P0.
-**Situação identificada:** não existe projeto/serviço AI Studio na conta Railway acessível.
-**Evidência:** listagem da API Railway retornou quatro projetos, nenhum relacionado ao AI Studio.
-**Impacto:** não há ambiente de homologação ou produção, URL HTTPS, logs, health check ou rollback.
-**Responsável:** usuário.
-**Ação necessária:** criar o projeto e serviço somente após aprovação de implantação.
+**Situação identificada:** projeto, serviço, domínio e deploy existem e o health check interno passou; a validação HTTPS externa foi bloqueada pela inspeção TLS corporativa, o ambiente ainda se chama `production` e o rollback não foi ensaiado.
+**Evidência:** deploy Railway do commit `22b11fa` com estado `SUCCESS`, build completo e mensagem `Healthcheck succeeded`; tentativas externas retornaram erro de handshake TLS nesta estação.
+**Impacto:** o runtime está disponível no Railway, mas a acessibilidade externa e o procedimento de rollback ainda não estão comprovados ponta a ponta.
+**Responsável:** usuário/Codex/Infraestrutura corporativa.
+**Ação necessária:** validar o domínio fora da rede restrita, separar/renomear o ambiente e ensaiar rollback.
 
 **Passo a passo para conclusão:**
 
-1. Acessar Railway → **New Project** → **Deploy from GitHub repo**.
-2. Selecionar `jonathanbrunosb/AI-Studio` e a branch `main`.
-3. Configurar no serviço: Railpack, build `npm run build`, start `npm run start`, healthcheck `/api/health`, timeout 120 s e reinício `ON_FAILURE`; não depender de `railway.json` em serviço novo.
-4. Vincular a Railway CLI, executar `railway config pull`, revisar e versionar `.railway/railway.ts` sem segredos.
-5. Cadastrar as variáveis da seção 11 sem colá-las em issues, commits ou conversas.
-6. Gerar um domínio temporário em **Settings → Networking → Generate Domain**.
-7. Atualizar `NEXT_PUBLIC_APP_URL` com a origem HTTPS e configurar a mesma URL no Supabase Auth.
-8. Iniciar o primeiro deploy de homologação; não promover a produção.
-9. Em **Deployments → View Logs**, conferir build, start e resposta 200 em `/api/health`; executar o roteiro da seção 12.
-10. Testar rollback: selecionar o deploy anterior aprovado e usar **Redeploy/Rollback**, confirmando o commit e o health check antes de retornar à versão nova.
+1. Em uma rede sem inspeção TLS restritiva, abrir `https://ai-studio-web-production.up.railway.app/api/health` e confirmar HTTP 200.
+2. Abrir `/login` e confirmar a tela; abrir `/dashboard` sem sessão e confirmar redirecionamento para `/login`.
+3. Railway → projeto **AI Studio** → ambiente atual → menu de ambiente: renomear para `homologacao`, ou criar um ambiente `homologacao` separado e reservar `production` para o go-live.
+4. Supabase → **Authentication → URL Configuration**: definir a Site URL e o callback com o domínio temporário descrito acima.
+5. Railway → **Deployments → View Logs**: confirmar ausência de `config.invalid` e de dados sensíveis.
+6. Vincular a Railway CLI, executar `railway config pull`, revisar e versionar `.railway/railway.ts` sem segredos.
+7. Testar rollback: selecionar o deploy anterior aprovado e usar **Redeploy/Rollback**, confirmar commit e health check e então retornar ao deploy atual.
 
 **Critério de conclusão:** serviço de homologação saudável, HTTPS ativo, `/api/health` 200, logs sem segredo e rollback ensaiado.
-**Status:** não iniciado.
+**Status:** em andamento; infraestrutura criada e deploy saudável, aguardando validação HTTPS externa, segregação do ambiente e rollback.
 
 ### Pendência P0-02 — Homologação autenticada e segregação de funções
 
@@ -308,15 +312,15 @@ Os 14 alertas de chaves estrangeiras sem índice que ainda estavam ativos em 23/
 ### Pendência P1-04 — Segredos e URL de produção
 
 **Prioridade:** P1.
-**Situação identificada:** ambiente local tem apenas configuração pública e URL localhost; segredos operacionais não estão configurados.
-**Evidência:** inventário de nomes das variáveis, sem leitura/exposição dos valores.
-**Impacto:** convites, IA, pacotes e Server Actions entre réplicas não ficam operacionais.
+**Situação identificada:** configuração pública, URL Railway, chave estável de Server Actions, provider e porta estão configurados. Permanecem ausentes as credenciais privilegiadas e chaves de IA/assinatura.
+**Evidência:** inventário de nomes das variáveis no Railway, sem leitura/exposição dos valores.
+**Impacto:** aplicação e Auth público podem iniciar, mas convites administrativos, geração real e assinatura de pacotes permanecem indisponíveis.
 **Responsável:** usuário.
 **Ação necessária:** cadastrar todas as variáveis no Railway e separar homologação/produção.
 
 **Passo a passo para conclusão:** usar a tabela da seção 11, aplicar primeiro em homologação, reiniciar o serviço e testar `/api/health`, convites, IA e assinatura.
 **Critério de conclusão:** todas as variáveis obrigatórias presentes, rotação documentada e nenhum segredo exposto no browser ou GitHub.
-**Status:** não iniciado.
+**Status:** parcialmente corrigido; aguardando `SUPABASE_SERVICE_ROLE_KEY`, `FAL_KEY` e `PORTAL_SIGNING_PRIVATE_KEY` conforme aprovação.
 
 ### Pendência P2-01 — Validação em nuvem e segurança independente
 
@@ -336,10 +340,10 @@ Os 14 alertas de chaves estrangeiras sem índice que ainda estavam ativos em 23/
 **Situação identificada:** `railway.json` é Config as Code descontinuado e novos serviços não podem adotá-lo; serviços existentes têm prazo até 01/12/2026.
 **Evidência:** [documentação oficial do Railway](https://docs.railway.com/config-as-code).
 **Impacto:** o primeiro serviço do AI Studio precisa ser configurado pelo painel/API e depois capturado em `.railway/railway.ts`; depender apenas do arquivo atual pode resultar em configuração ignorada.
-**Responsável:** usuário/Codex após criação autorizada do projeto.
-**Ação necessária:** criar o serviço de homologação, configurar build/start/healthcheck no Railway e usar `railway config pull` para versionar a Infrastructure as Code sem segredos.
+**Responsável:** usuário/Codex.
+**Ação necessária:** o serviço e os parâmetros já foram criados; usar `railway config pull` para versionar a Infrastructure as Code sem segredos.
 **Critério de conclusão:** `.railway/railway.ts` versionado, preview/apply revisados e `railway.json` retirado em migração separada.
-**Status:** aguardando criação autorizada do projeto Railway.
+**Status:** infraestrutura configurada; captura da IaC pendente.
 
 ### Pendência P2-02 — Baseline de desempenho após carga
 
@@ -414,7 +418,7 @@ Nunca cadastrar chaves privilegiadas com prefixo `NEXT_PUBLIC_`. Manter variáve
 | 06 | Editor visual funcional | ✅ Validado tecnicamente | Usuário/QA | Repetir jornada no Storage/Supabase de homologação. |
 | 07 | Fluxo editorial validado | ✅ Automatizado | Usuário/QA | Homologar com editor e aprovador corporativos distintos. |
 | 08 | Integração com portal | 🟡 Código validado | Usuário/Portal | Configurar assinatura e executar pacote real de homologação. |
-| 09 | Railway configurado | 🔴 Não iniciado | Usuário | Criar serviço de homologação a partir do GitHub. |
+| 09 | Railway configurado | 🟡 Deploy saudável | Codex/Usuário | Validar HTTPS externamente, renomear/separar homologação e ensaiar rollback. |
 | 10 | Segurança validada | 🟡 Parcial | Segurança/Usuário/Codex | Ativar senha vazada e executar DAST em homologação. |
 | 11 | Homologação concluída | 🔴 Não iniciada | Usuário | Executar roteiro da seção 12. |
 | 12 | Liberação para produção | 🔴 Não autorizada | Usuário | Autorizar somente após gates de produção. |
@@ -433,7 +437,9 @@ Nunca cadastrar chaves privilegiadas com prefixo `NEXT_PUBLIC_`. Manter variáve
 - RPCs públicos privilegiados substituídos por wrappers `SECURITY INVOKER`; implementações movidas para `app_private` com grants mínimos.
 - Teste SQL estrutural ampliado e executado no Supabase real após a migração.
 - Índices adicionados para as 14 chaves estrangeiras ainda apontadas pelo Advisor; o alerta `unindexed_foreign_keys` foi eliminado.
+- Projeto Railway `AI Studio`, serviço `ai-studio-web` e domínio temporário criados; build/start/healthcheck configurados e deploy do commit `22b11fa` aprovado.
+- Variáveis públicas/estruturais cadastradas no Railway sem versionar ou expor valores; `PORT=3000` alinhada ao target do domínio.
 
 ## 17. Conclusão de prontidão
 
-O AI Studio está **tecnicamente pronto para iniciar uma homologação controlada**, não para produção. A arquitetura, os módulos principais e as barreiras de banco estão presentes; build, testes unitários, acesso anônimo, interoperabilidade do pacote e o hardening dos RPCs foram comprovados. A entrada em operação permanece bloqueada por ausência de Railway, segredos/URLs produtivos, proteção contra senhas vazadas, aprovação do provedor de IA e homologação com perfis distintos. Após concluir as pendências P0 e P1 externas e executar o roteiro de homologação, uma nova decisão formal de go-live deverá ser registrada.
+O AI Studio está **implantado no Railway e tecnicamente pronto para iniciar uma homologação controlada**, não para produção. A arquitetura, os módulos principais, as barreiras de banco, o build e o health check do runtime foram comprovados. A entrada em operação permanece bloqueada pela validação HTTPS externa, configuração das URLs do Supabase Auth, credenciais privilegiadas, proteção contra senhas vazadas, aprovação do provedor de IA, segregação do ambiente e homologação com perfis distintos. Após concluir as pendências P0 e P1 externas e executar o roteiro de homologação, uma nova decisão formal de go-live deverá ser registrada.
