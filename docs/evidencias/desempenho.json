@@ -1,0 +1,60 @@
+{
+  "medidoEm": "2026-09-23T10:46:50.298Z",
+  "ambiente": "local: next start (build de produção) + PostgreSQL/GoTrue/PostgREST locais, Chromium headless, sem latência de rede",
+  "amostrasPorPagina": 5,
+  "paginasComCache": {
+    "/dashboard": {
+      "ttfbMs": 83,
+      "domContentLoadedMs": 157,
+      "loadMs": 172
+    },
+    "/studio": {
+      "ttfbMs": 83,
+      "domContentLoadedMs": 140,
+      "loadMs": 180
+    },
+    "/biblioteca": {
+      "ttfbMs": 74,
+      "domContentLoadedMs": 144,
+      "loadMs": 160
+    },
+    "/gestao-editorial": {
+      "ttfbMs": 81,
+      "domContentLoadedMs": 152,
+      "loadMs": 165
+    },
+    "/publicacoes": {
+      "ttfbMs": 81,
+      "domContentLoadedMs": 171,
+      "loadMs": 181
+    },
+    "/modelos": {
+      "ttfbMs": 82,
+      "domContentLoadedMs": 135,
+      "loadMs": 174
+    },
+    "/administracao": {
+      "ttfbMs": 80,
+      "domContentLoadedMs": 137,
+      "loadMs": 150
+    }
+  },
+  "cacheVazio": {
+    "/login": {
+      "transferKb": 152,
+      "loadMs": 190
+    },
+    "/dashboard": {
+      "transferKb": 179,
+      "loadMs": 241
+    },
+    "/studio/editor/:id": {
+      "transferKb": 444,
+      "loadMs": 282
+    }
+  },
+  "apiHealthMs": {
+    "mediana": 5,
+    "max": 18
+  }
+}
