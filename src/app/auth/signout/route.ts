@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { appUrl } from "@/lib/auth/routes";
 import { log } from "@/lib/observability/logger";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,10 +12,10 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(new URL("/login", request.url));
+  if (!user) return NextResponse.redirect(appUrl("/login", request.url));
   const { data: profile } = await supabase.from("profiles").select("is_active").eq("id", user.id).maybeSingle();
-  if (profile?.is_active) return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (profile?.is_active) return NextResponse.redirect(appUrl("/dashboard", request.url));
   log("warn", "auth.login_inactive", { userId: user.id, stage: "session" });
   await supabase.auth.signOut();
-  return NextResponse.redirect(new URL("/login?session=inactive", request.url));
+  return NextResponse.redirect(appUrl("/login?session=inactive", request.url));
 }
