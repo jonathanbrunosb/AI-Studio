@@ -1,6 +1,17 @@
 # AI Studio — Comunicação Contábil
 
-Aplicação corporativa para criação, gestão e futura aprovação de comunicados, newsletters e materiais visuais da Gerência de Contabilidade.
+Aplicação corporativa para criação, aprovação e publicação de comunicados, newsletters e materiais visuais da Gerência de Contabilidade.
+
+## Documentação
+
+| Documento | Conteúdo |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, modelo de dados, fluxos e limitações |
+| [SECURITY.md](SECURITY.md) | Controles de segurança, auditoria, pendências |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Ambientes, Railway, variáveis, monitoramento, backup, rollback |
+| [docs/MANUAL_USUARIO.md](docs/MANUAL_USUARIO.md) | Manual do usuário com telas reais |
+| [docs/HOMOLOGACAO.md](docs/HOMOLOGACAO.md) | Roteiro de homologação (15 passos) |
+| [docs/RELATORIO_SPRINT_8.md](docs/RELATORIO_SPRINT_8.md) | Relatório executivo da Sprint 8 e prontidão |
 
 ## Stack
 
@@ -106,24 +117,22 @@ Os fluxos de convite e recuperação dependem dessas URLs autorizadas.
 ## Testes e validação
 
 ```bash
-npm run test
-npm run typecheck
-npm run lint
-npm run build
+npm run lint && npm run typecheck && npm test   # estático + unitários (Vitest)
+npm run test:sql                                # migrações + supabase/tests/*.sql em PostgreSQL descartável (PG_ADMIN_URL)
+bash scripts/e2e/start-stack.sh                 # pilha local: PostgreSQL + GoTrue + PostgREST + gateway + simulador fal.ai
+bash scripts/e2e/start-app.sh                   # build de produção em http://127.0.0.1:3100
+npm run test:e2e                                # Playwright (jornadas, permissões, responsividade, desempenho)
+bash scripts/e2e/stop-stack.sh
 ```
 
-O teste de integração usa somente a chave publicável e verifica que consultas anônimas são negadas e credenciais inválidas não criam sessão. As asserções estruturais de banco estão em `supabase/tests/database_security.sql` e podem ser executadas com o ambiente local do Supabase.
-
-Testes completos de login válido, logout, convite e ciclo persistente exigem uma conta de teste convidada e `SUPABASE_SERVICE_ROLE_KEY` configurada no ambiente seguro; credenciais de teste não devem ser versionadas.
+- A pilha E2E usa apenas dados fictícios (`*@e2e.invalid`) e um banco descartável; nunca aponte `PG_ADMIN_URL` para bancos reais.
+- A jornada de publicação valida o ZIP com o módulo do portal (`PORTAL_REPO`, padrão `../portal-contabilidade`).
+- A geração com IA nos testes usa um **simulador** da Queue API da fal.ai; isso não comprova a integração real.
+- CI: `.github/workflows/ci.yml` (qualidade, SQL e E2E).
 
 ## Railway
 
-- Build command: `npm run build`
-- Start command: `npm run start`
-- Node.js: versão 22 ou superior.
-- Cadastre no Railway todas as variáveis listadas em `.env.example`.
-- Use uma chave estável em `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` para manter Server Actions consistentes entre réplicas e deploys.
-- Nunca exponha a chave administrativa como variável pública.
+Configuração em `railway.json` (healthcheck `/api/health`). Passo a passo, variáveis, verificações pós-deploy e rollback em [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Editor visual — Sprint 4
 
@@ -160,9 +169,15 @@ As migrações adicionam tipos de versão (`working`, `checkpoint`, `frozen`), u
 - Importação no portal: repositório `portal-contabilidade`, Administração → "Importar do AI Studio".
 - Documentação: [`docs/INTEGRACAO_PORTAL.md`](docs/INTEGRACAO_PORTAL.md).
 
+## Sprint 8 — Testes integrados, segurança e preparação para implantação
+
+- Testes E2E (Playwright) com Auth/RLS reais; testes SQL executáveis localmente e no CI.
+- Defeitos críticos corrigidos (criação de conteúdo, envio para aprovação, conclusão de gerações de IA, posicionamento no editor com Fabric 7, entre outros) — lista completa no relatório.
+- CSP com nonce, cabeçalhos defensivos, HSTS condicionado, logs estruturados com correlação, verificação de configuração, trilha de auditoria imutável.
+
 ## Limites atuais
 
-Geração de vídeos permanece desativada. A sincronização automática com o portal não foi testada entre as duas aplicações em produção (ver documentação). A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
+Geração de vídeos permanece desativada. A integração real com a fal.ai e a importação do pacote no portal publicado ainda precisam ser comprovadas na homologação (passos 6 e 13 do roteiro).
 
 ## Sprint 3 — Conteúdo e modelos
 
@@ -179,10 +194,4 @@ Geração de vídeos permanece desativada. A sincronização automática com o p
 
 ### Verificação da Sprint 3
 
-`npm run test` inclui validação de URLs, datas, dimensões e campos protegidos. O roteiro `supabase/tests/sprint_3_editorial.sql` cria fixtures temporárias em uma transação, troca para os papéis da API e testa isolamento, duplicação, auditoria e RLS; o ROLLBACK final remove todas as fixtures. Execute-o em ambiente de teste com conexão PostgreSQL autorizada para escrita:
-
-```bash
-psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/sprint_3_editorial.sql
-```
-
-O conector SQL remoto disponível nesta implementação recusou esse roteiro por operar em transação somente leitura. Portanto, os cenários comportamentais de RLS não foram considerados aprovados. As configurações de grants/RLS e o Security Advisor foram consultados diretamente. A homologação autenticada continua dependente do primeiro usuário autorizado descrito acima.
+Os cenários de `supabase/tests/sprint_3_editorial.sql` são executados por `npm run test:sql` (e no CI). Na Sprint 8 esse roteiro revelou que a política de leitura de `contents` impedia a criação de conteúdo; a correção está na migração `sprint_8_hardening`.

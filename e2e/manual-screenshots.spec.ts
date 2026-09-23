@@ -48,6 +48,11 @@ test("capturas do manual do usuário", async ({ page }) => {
   await page.getByRole("row").filter({ hasText: "Calendário de fechamento — outubro" }).first().getByRole("button", { name: "Preparar publicação" }).click();
   await shot(page, "11-preparar-publicacao");
 
+  await page.goto("/biblioteca");
+  await shot(page, "13-biblioteca");
+  await page.goto(`/gestao-editorial/revisao/${contentId}#historico`);
+  await shot(page, "14-historico");
+
   await loginAs(page, users.admin);
   await page.goto("/administracao");
   await shot(page, "12-administracao");

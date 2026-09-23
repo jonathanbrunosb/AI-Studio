@@ -90,3 +90,17 @@ test("editor não recebe controles de decisão na gestão editorial", async ({ p
   await page.goto("/gestao-editorial");
   await expect(page.getByRole("button", { name: "Aprovar conteúdo" })).toHaveCount(0);
 });
+
+test("arquivamento preserva histórico e registra auditoria com autor, ação e conteúdo", async ({ page }) => {
+  await loginAs(page, users.editor);
+  const contentId = await createCommunique(page, unique("Arquivamento E2E"));
+  await page.goto(`/studio?id=${contentId}`);
+  page.once("dialog", (dialog) => void dialog.accept("Comunicado substituído por nova orientação"));
+  await page.getByRole("button", { name: "Arquivar" }).click();
+  await expect.poll(() => status(contentId)).toBe("archived");
+  const audit = sql(`select a.action || '|' || split_part(u.email,'@',1) || '|' || (a.entity_id = '${contentId}') || '|' || (a.created_at is not null)
+    from audit_logs a join auth.users u on u.id = a.actor_id where a.entity_id='${contentId}' and a.action='editorial.archived'`);
+  expect(audit).toBe("editorial.archived|editor|true|true");
+  // Aprovador não arquiva conteúdo alheio, nem pelo banco.
+  expect(sqlAsUser(users.approver, `select archive_content('${contentId}', 'tentativa indevida')`)).not.toBe("ok");
+});

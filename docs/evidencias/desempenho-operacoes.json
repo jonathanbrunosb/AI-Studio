@@ -1,0 +1,35 @@
+{
+  "medidoEm": "2026-09-23T11:02:45.074Z",
+  "ambiente": "local: build de produção + pilha local; Chromium headless 1366x768; composição padrão 1080x1080",
+  "execucoes": 3,
+  "medianas": {
+    "cadastroMs": 209,
+    "aberturaEditorMs": 618,
+    "salvamentoVersaoMs": 202,
+    "exportacaoPngMs": 123
+  },
+  "amostras": {
+    "cadastroMs": [
+      209,
+      201,
+      218
+    ],
+    "aberturaEditorMs": [
+      634,
+      421,
+      618
+    ],
+    "salvamentoVersaoMs": [
+      197,
+      202,
+      237
+    ],
+    "exportacaoPngMs": [
+      143,
+      123,
+      107
+    ]
+  },
+  "exportacaoPngKb": 66,
+  "heapJsEditorMaxMb": 66
+}
