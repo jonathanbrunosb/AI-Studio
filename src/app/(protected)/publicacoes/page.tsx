@@ -75,8 +75,9 @@ export default async function PublicationsPage({ searchParams }: { searchParams:
             <td className="px-3 py-3 text-xs text-slate-600">{pub?.destinationLabel ?? destinationsFor(row.category)[0]?.label ?? "Sem destino habilitado"}</td>
             <td className="px-3 py-3"><PublicationStatusBadge status={status as keyof typeof publicationStatusLabels} />{pub?.status === "failed" && pub.errorMessage && <p className="mt-1 max-w-48 text-[11px] text-rose-700">{pub.errorMessage}</p>}{pub?.externalUrl && <a href={pub.externalUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block text-[11px] font-bold text-blue-700">Ver no portal ↗</a>}</td>
             <td className="px-5 py-3"><div className="flex flex-wrap justify-end gap-2">
-              {preparable && needsPreparation && <PreparePublicationButton data={prepareData} label={pub?.status === "published" ? "Preparar atualização" : "Preparar publicação"} />}
-              {preparable && pub?.isCurrentVersion && ["prepared", "exported"].includes(pub.status) && <PreparePublicationButton data={prepareData} label="Regerar pacote" />}
+              {/* Um único botão por linha: o rótulo muda após a preparação sem desmontar o diálogo (resultado e link de download permanecem). */}
+              {preparable && (needsPreparation || (pub?.isCurrentVersion && ["prepared", "exported"].includes(pub.status))) && <PreparePublicationButton key={`prepare-${row.contentId}`} data={prepareData}
+                label={needsPreparation ? (pub?.status === "published" ? "Preparar atualização" : "Preparar publicação") : "Regerar pacote"} />}
               {pub && pub.isCurrentVersion && !["failed", "superseded"].includes(pub.status) && <DownloadPackageLink publicationId={pub.id} />}
               {canConfirm(roles) && pub && pub.isCurrentVersion && <PublicationAdminActions publicationId={pub.id} status={pub.status} />}
               <Link href={href({ historico: row.contentId })} className="secondary-button h-9 px-3 text-xs"><History size={14} />Histórico</Link>
