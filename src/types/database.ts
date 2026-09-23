@@ -554,6 +554,171 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_destinations: {
+        Row: {
+          id: string
+          label: string
+          portal_collection: string
+          portal_category: string
+          enabled: boolean
+          notes: string | null
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          label: string
+          portal_collection: string
+          portal_category: string
+          enabled?: boolean
+          notes?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          label?: string
+          portal_collection?: string
+          portal_category?: string
+          enabled?: boolean
+          notes?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      content_category_destinations: {
+        Row: {
+          category: string
+          destination_id: string
+          is_default: boolean
+        }
+        Insert: {
+          category: string
+          destination_id: string
+          is_default?: boolean
+        }
+        Update: {
+          category?: string
+          destination_id?: string
+          is_default?: boolean
+        }
+        Relationships: []
+      }
+      portal_integration_settings: {
+        Row: {
+          id: boolean
+          api_enabled: boolean
+          require_signature: boolean
+          last_sync_at: string | null
+          last_error_at: string | null
+          last_error: string | null
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          api_enabled?: boolean
+          require_signature?: boolean
+          last_sync_at?: string | null
+          last_error_at?: string | null
+          last_error?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          api_enabled?: boolean
+          require_signature?: boolean
+          last_sync_at?: string | null
+          last_error_at?: string | null
+          last_error?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      integration_clients: {
+        Row: {
+          id: string
+          name: string
+          token_hash: string
+          token_prefix: string
+          scopes: string[]
+          enabled: boolean
+          last_used_at: string | null
+          created_by: string | null
+          created_at: string
+          revoked_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          token_hash: string
+          token_prefix: string
+          scopes?: string[]
+          enabled?: boolean
+          last_used_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          revoked_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          token_hash?: string
+          token_prefix?: string
+          scopes?: string[]
+          enabled?: boolean
+          last_used_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          revoked_at?: string | null
+        }
+        Relationships: []
+      }
+      publication_events: {
+        Row: {
+          id: string
+          publication_id: string
+          content_id: string
+          event: string
+          from_status: string | null
+          to_status: string | null
+          actor_id: string | null
+          client_id: string | null
+          source: string
+          details: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          publication_id: string
+          content_id: string
+          event: string
+          from_status?: string | null
+          to_status?: string | null
+          actor_id?: string | null
+          client_id?: string | null
+          source: string
+          details?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          publication_id?: string
+          content_id?: string
+          event?: string
+          from_status?: string | null
+          to_status?: string | null
+          actor_id?: string | null
+          client_id?: string | null
+          source?: string
+          details?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -586,6 +751,29 @@ export type Database = {
       }
       publication_exports: {
         Row: {
+          version_id: string | null
+          destination: string | null
+          status: string
+          manifest: Json | null
+          manifest_sha256: string | null
+          image_sha256: string | null
+          package_sha256: string | null
+          image_path: string | null
+          signed: boolean
+          prepared_at: string | null
+          exported_by: string | null
+          exported_at: string | null
+          received_at: string | null
+          external_publication_id: string | null
+          external_url: string | null
+          published_channel: string | null
+          published_at: string | null
+          confirmed_by: string | null
+          confirmation_source: string | null
+          error_message: string | null
+          supersedes_id: string | null
+          superseded_by_id: string | null
+          updated_at: string
           content_id: string
           created_at: string
           created_by: string
@@ -594,6 +782,29 @@ export type Database = {
           storage_path: string | null
         }
         Insert: {
+          version_id?: string | null
+          destination?: string | null
+          status?: string
+          manifest?: Json | null
+          manifest_sha256?: string | null
+          image_sha256?: string | null
+          package_sha256?: string | null
+          image_path?: string | null
+          signed?: boolean
+          prepared_at?: string | null
+          exported_by?: string | null
+          exported_at?: string | null
+          received_at?: string | null
+          external_publication_id?: string | null
+          external_url?: string | null
+          published_channel?: string | null
+          published_at?: string | null
+          confirmed_by?: string | null
+          confirmation_source?: string | null
+          error_message?: string | null
+          supersedes_id?: string | null
+          superseded_by_id?: string | null
+          updated_at?: string
           content_id: string
           created_at?: string
           created_by: string
@@ -602,6 +813,29 @@ export type Database = {
           storage_path?: string | null
         }
         Update: {
+          version_id?: string | null
+          destination?: string | null
+          status?: string
+          manifest?: Json | null
+          manifest_sha256?: string | null
+          image_sha256?: string | null
+          package_sha256?: string | null
+          image_path?: string | null
+          signed?: boolean
+          prepared_at?: string | null
+          exported_by?: string | null
+          exported_at?: string | null
+          received_at?: string | null
+          external_publication_id?: string | null
+          external_url?: string | null
+          published_channel?: string | null
+          published_at?: string | null
+          confirmed_by?: string | null
+          confirmation_source?: string | null
+          error_message?: string | null
+          supersedes_id?: string | null
+          superseded_by_id?: string | null
+          updated_at?: string
           content_id?: string
           created_at?: string
           created_by?: string
@@ -714,7 +948,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      publication_latest: {
+        Row: {
+          id: string
+          content_id: string
+          format: string
+          storage_path: string | null
+          created_by: string
+          created_at: string
+          version_id: string | null
+          destination: string | null
+          status: string
+          manifest: Json | null
+          manifest_sha256: string | null
+          image_sha256: string | null
+          package_sha256: string | null
+          image_path: string | null
+          signed: boolean
+          prepared_at: string | null
+          exported_by: string | null
+          exported_at: string | null
+          received_at: string | null
+          external_publication_id: string | null
+          external_url: string | null
+          published_channel: string | null
+          published_at: string | null
+          confirmed_by: string | null
+          confirmation_source: string | null
+          error_message: string | null
+          supersedes_id: string | null
+          superseded_by_id: string | null
+          updated_at: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       duplicate_content: { Args: { source_id: string }; Returns: string }
@@ -731,6 +998,18 @@ export type Database = {
       list_eligible_reviewers: {
         Args: { p_content_id: string }
         Returns: { id: string; full_name: string; email: string }[]
+      }
+      register_publication_package: {
+        Args: { p_publication_id: string; p_actor: string; p_content_id: string; p_version_id: string; p_destination: string; p_manifest: Json; p_manifest_sha256: string; p_image_sha256: string; p_package_sha256: string; p_package_path: string; p_image_path: string; p_signed: boolean }
+        Returns: string
+      }
+      transition_publication: {
+        Args: { p_publication_id: string; p_action: string; p_channel?: string | null; p_published_at?: string | null; p_external_id?: string | null; p_external_url?: string | null; p_message?: string | null }
+        Returns: string
+      }
+      portal_acknowledge_publication: {
+        Args: { p_client_id: string; p_publication_id: string; p_content_id: string; p_version_id: string; p_status: string; p_external_id: string | null; p_external_url: string | null; p_published_at: string | null; p_message: string | null }
+        Returns: { status: string; duplicate: boolean }[]
       }
       reserve_generation_job: {
         Args: {

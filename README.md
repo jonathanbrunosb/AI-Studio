@@ -152,9 +152,17 @@ As migrações adicionam tipos de versão (`working`, `checkpoint`, `frozen`), u
 - Todas as transições ocorrem em funções transacionais do PostgreSQL; ninguém aprova conteúdo próprio, nem administradores.
 - Documentação: [`docs/FLUXO_EDITORIAL.md`](docs/FLUXO_EDITORIAL.md).
 
+## Central de Publicações — Sprint 7
+
+- `/publicacoes`: conteúdos com versão aprovada, preparação do pacote ZIP (manifesto versionado, SHA-256 e assinatura ECDSA), download autenticado, confirmação manual de publicação, falhas e nova tentativa, histórico e substituição de versões publicadas.
+- `/administracao/integracoes`: destinos do portal por categoria, modo de publicação, credenciais da API (token exibido uma vez; só o hash é armazenado) e histórico de falhas.
+- API autenticada `/api/integrations/portal/v1/...` pronta, **desabilitada por padrão**: o portal atual (GitHub Pages) não tem backend seguro para guardar o token.
+- Importação no portal: repositório `portal-contabilidade`, Administração → "Importar do AI Studio".
+- Documentação: [`docs/INTEGRACAO_PORTAL.md`](docs/INTEGRACAO_PORTAL.md).
+
 ## Limites atuais
 
-Geração de vídeos e publicação no Portal da Contabilidade (Sprint 7) permanecem desativadas. A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
+Geração de vídeos permanece desativada. A sincronização automática com o portal não foi testada entre as duas aplicações em produção (ver documentação). A versão `frozen` já está prevista no banco, mas seu uso editorial será implementado junto ao fluxo de aprovação.
 
 ## Sprint 3 — Conteúdo e modelos
 

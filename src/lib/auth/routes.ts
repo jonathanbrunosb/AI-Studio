@@ -1,4 +1,4 @@
-export const protectedPrefixes = ["/dashboard", "/studio", "/biblioteca", "/gestao-editorial", "/modelos", "/administracao"] as const;
+export const protectedPrefixes = ["/dashboard", "/studio", "/biblioteca", "/gestao-editorial", "/publicacoes", "/modelos", "/administracao"] as const;
 export const publicAuthPrefixes = ["/login", "/recuperar-senha"] as const;
 
 export function matchesRoutePrefix(pathname: string, prefixes: readonly string[]) {
