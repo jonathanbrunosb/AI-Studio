@@ -86,3 +86,25 @@ end;
 $$;
 revoke all on function public.list_eligible_reviewers(uuid) from public, anon;
 grant execute on function public.list_eligible_reviewers(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 5. Reserva atômica da finalização de um job de IA. O filtro or() em PATCH do PostgREST
+--    falhava (42703) e o erro era descartado, deixando jobs concluídos presos em "processing".
+-- ---------------------------------------------------------------------------
+create or replace function public.claim_generation_finalize(p_job_id uuid, p_stale_seconds integer default 120)
+returns boolean
+language sql
+volatile
+security definer
+set search_path = ''
+as $$
+  with claimed as (
+    update public.generation_jobs j set finalizing_at = now()
+    where j.id = p_job_id and j.status = 'processing'
+      and (j.finalizing_at is null or j.finalizing_at < now() - make_interval(secs => p_stale_seconds))
+    returning 1
+  )
+  select exists (select 1 from claimed);
+$$;
+revoke all on function public.claim_generation_finalize(uuid, integer) from public, anon, authenticated;
+grant execute on function public.claim_generation_finalize(uuid, integer) to service_role;

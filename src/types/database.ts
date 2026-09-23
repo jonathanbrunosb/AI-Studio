@@ -995,6 +995,10 @@ export type Database = {
       }
       create_new_content_version: { Args: { p_content_id: string }; Returns: undefined }
       archive_content: { Args: { p_content_id: string; p_reason?: string | null }; Returns: undefined }
+      claim_generation_finalize: {
+        Args: { p_job_id: string; p_stale_seconds?: number }
+        Returns: boolean
+      }
       list_eligible_reviewers: {
         Args: { p_content_id: string }
         Returns: { id: string; full_name: string; email: string }[]

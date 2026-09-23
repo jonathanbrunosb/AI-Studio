@@ -1,3 +1,4 @@
+import { errorName, log } from "@/lib/observability/logger";
 import { getModelDefinition } from "../models/model-catalog";
 import type { AvailableModel } from "../models/model-types";
 import { buildFinalPrompt } from "../prompts/prompt-builder";
@@ -170,6 +171,7 @@ export async function refreshGeneration(jobId: string, deps: GenerationDeps): Pr
   } catch (error) {
     const failure = providerFailure(error);
     if (failure.code === "invalid_credentials" || failure.code === "not_configured") throw failure;
+    log("warn", "ai.provider_transient", { jobId: job.id, code: failure.code, error: errorName(error), detail: error instanceof ProviderError ? error.message : undefined });
     return job; // Falhas transitórias preservam o estado; o acompanhamento tenta novamente.
   }
 
@@ -209,6 +211,7 @@ export async function refreshGeneration(jobId: string, deps: GenerationDeps): Pr
   } catch (error) {
     await deps.repo.releaseFinalize(job.id);
     const failure = error instanceof GenerationError ? error : providerFailure(error);
+    log("error", "ai.finalize_failed", { jobId: job.id, code: failure.code });
     await deps.repo.updateJob(job.id, { errorMessage: failure.message });
     return { ...job, errorMessage: failure.message };
   }

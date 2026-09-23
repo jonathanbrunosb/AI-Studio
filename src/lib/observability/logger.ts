@@ -4,7 +4,7 @@
  */
 type Level = "info" | "warn" | "error";
 export type LogEvent =
-  | "auth.login_failed" | "auth.login_inactive" | "supabase.unavailable" | "ai.generation_failed" | "ai.unexpected"
+  | "auth.login_failed" | "auth.login_inactive" | "supabase.unavailable" | "ai.generation_failed" | "ai.provider_transient" | "ai.finalize_failed" | "ai.unexpected"
   | "storage.failed" | "editorial.operation_failed" | "publication.failed" | "integration.request_rejected" | "app.unhandled";
 
 const SENSITIVE = /pass(word)?|token|secret|key|authorization|cookie|prompt|email/i;

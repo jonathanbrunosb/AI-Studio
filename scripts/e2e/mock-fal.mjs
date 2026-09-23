@@ -19,7 +19,10 @@ const requests = new Map();
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, BASE);
+  console.log(JSON.stringify({ method: req.method, path: url.pathname }));
   const send = (status, body) => { res.writeHead(status, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };
+  // Arquivos de resultado ficam em CDN pública (fal.media), sem autenticação, como no provedor real.
+  if (url.pathname === "/files/e2e.png") { res.writeHead(200, { "Content-Type": "image/png", "Content-Length": image.length }); return res.end(image); }
   if (!String(req.headers.authorization || "").startsWith("Key ")) return send(401, { detail: "missing key" });
   if (req.method === "POST") {
     let payload = ""; for await (const chunk of req) payload += chunk;
@@ -30,7 +33,6 @@ http.createServer(async (req, res) => {
     return send(200, { request_id: id, status_url: `${BASE}/${app}/requests/${id}/status`, response_url: `${BASE}/${app}/requests/${id}`, cancel_url: `${BASE}/${app}/requests/${id}/cancel` });
   }
   const match = url.pathname.match(/\/requests\/([^/]+)(\/status|\/cancel)?$/);
-  if (url.pathname === "/files/e2e.png") { res.writeHead(200, { "Content-Type": "image/png", "Content-Length": image.length }); return res.end(image); }
   if (!match || !requests.has(match[1])) return send(404, { detail: "not found" });
   const request = requests.get(match[1]);
   if (match[2] === "/status") { request.polls += 1; return send(200, { status: request.polls < 2 ? "IN_PROGRESS" : "COMPLETED" }); }

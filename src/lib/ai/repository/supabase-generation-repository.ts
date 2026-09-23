@@ -74,10 +74,10 @@ export class SupabaseGenerationRepository implements GenerationRepository {
   }
 
   async claimFinalize(jobId: string) {
-    const staleBefore = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-    const { data } = await this.adminClient.from("generation_jobs").update({ finalizing_at: new Date().toISOString() })
-      .eq("id", jobId).eq("status", "processing").or(`finalizing_at.is.null,finalizing_at.lt.${staleBefore}`).select("id");
-    return Boolean(data?.length);
+    // Reserva atômica no banco (RPC). Um erro aqui não pode ser confundido com "outra requisição finalizando".
+    const { data, error } = await this.adminClient.rpc("claim_generation_finalize", { p_job_id: jobId });
+    if (error) throw new Error(`claim_generation_finalize: ${error.code ?? "unknown"}`);
+    return data === true;
   }
 
   async releaseFinalize(jobId: string) {
