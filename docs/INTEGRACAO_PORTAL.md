@@ -90,3 +90,7 @@ Campos do manifesto: `schema_version`, `publication_id`, `content_id`, `version_
 4. Decidir se o portal terá backend seguro hospedado; só então habilitar a API e implementar o adaptador (consumir + `acknowledge`).
 5. Evolução do portal (opcional): aba própria para Comunicados Internos e para anúncios de sistemas — hoje ambos usam categorias da Newsletter.
 6. A imagem da peça é renderizada no navegador de quem prepara (o servidor valida formato e dimensões e registra os hashes). Para eliminar essa confiança, adotar renderização no servidor (ex.: `canvas` + Fabric em Node).
+
+## 9. Aplicação no Supabase (23/09/2026)
+
+Projeto `idrseyhwkhlvedfgzecb`. O banco tinha uma implementação anterior da Sprint 5 que não estava em nenhum branch (`sprint_5_ai_generation`, `sprint_5_ai_security_hardening`, `sprint_5_ai_table_grants`). Com autorização do responsável e sem dados nas tabelas, ela foi removida por `20260922215900_revert_previous_sprint_5_schema.sql` (idempotente; em bancos novos não altera nada) e, em seguida, foram aplicadas as Sprints 5, 6 e 7 do repositório. No histórico do Supabase, as versões registradas são as do momento da aplicação (20260923001244 a 20260923001540).
