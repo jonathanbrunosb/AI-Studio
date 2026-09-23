@@ -13,6 +13,8 @@ Aplicação corporativa para criação, aprovação e publicação de comunicado
 | [docs/HOMOLOGACAO.md](docs/HOMOLOGACAO.md) | Roteiro de homologação (15 passos) |
 | [docs/RELATORIO_SPRINT_8.md](docs/RELATORIO_SPRINT_8.md) | Relatório executivo da Sprint 8 e prontidão |
 
+O diagnóstico de prontidão, os gates de homologação e o roteiro de implantação estão em [`AI_STUDIO_PLANO_ENTRADA_OPERACAO.md`](AI_STUDIO_PLANO_ENTRADA_OPERACAO.md).
+
 ## Stack
 
 - Next.js 16 com App Router, Server Actions e `proxy.ts`.
@@ -133,6 +135,12 @@ bash scripts/e2e/stop-stack.sh
 ## Railway
 
 Configuração em `railway.json` (healthcheck `/api/health`). Passo a passo, variáveis, verificações pós-deploy e rollback em [DEPLOYMENT.md](DEPLOYMENT.md).
+
+O workflow `.github/workflows/ci.yml` executa lint, typecheck, testes unitários, auditoria de dependências, build, testes SQL e E2E em pushes e pull requests. A existência desses arquivos não cria nem publica um serviço Railway; o primeiro deploy continua dependendo de autorização e configuração explícitas.
+
+### Histórico de migrações
+
+Os nomes dos arquivos em `supabase/migrations` espelham as versões registradas no projeto `AI-Studio`. As três migrações intermediárias da primeira tentativa da Sprint 5 são marcadores vazios: foram aplicadas diretamente, revertidas pela versão `20260923001244` e substituídas pelo esquema definitivo `20260923001321`. Os dois marcadores finais representam o bootstrap específico do primeiro administrador sem versionar identificadores ou dados pessoais. Essa sequência mantém `supabase migration list` alinhado e permite reproduzir o estado final em projetos novos.
 
 ## Editor visual — Sprint 4
 

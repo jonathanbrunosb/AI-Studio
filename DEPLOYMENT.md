@@ -41,7 +41,7 @@ Na inicialização a aplicação registra `config.invalid` (nomes das variáveis
 
 - Build: Railpack, `npm run build` (Node ≥ 22, conforme `engines`).
 - Start: `npm run start` (o Next.js usa a variável `PORT` do Railway).
-- Healthcheck: `GET /api/health` (sem autenticação, sem dados internos), timeout 60 s.
+- Healthcheck: `GET /api/health` (sem autenticação, sem dados internos), timeout 120 s; responde 503 se a configuração pública do Supabase estiver ausente.
 - Reinício: `ON_FAILURE`, até 5 tentativas; `drainingSeconds` 15.
 
 > **Atenção:** o Railway declarou o Config as Code (`railway.json`) **descontinuado**, com suporte para serviços existentes até **01/12/2026**, recomendando migrar para Infrastructure as Code (`.railway/railway.ts`). Migrar antes dessa data (pendência registrada).
@@ -61,7 +61,7 @@ Na inicialização a aplicação registra `config.invalid` (nomes das variáveis
 
 | # | Verificação | Como | Esperado |
 |---|---|---|---|
-| 1 | Saúde | `curl -i <APP_URL>/api/health` | 200, `{"status":"ok"}` |
+| 1 | Saúde | `curl -i <APP_URL>/api/health` | 200, `{"status":"ok","service":"ai-studio",...}` |
 | 2 | Cabeçalhos | `curl -sI <APP_URL>/login` | CSP com `nonce-`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, sem `X-Powered-By` |
 | 3 | Proteção de rotas | abrir `<APP_URL>/dashboard` sem sessão | redireciona para `/login?redirect=` |
 | 4 | Login e papéis | um usuário de cada papel | acesso conforme papel |

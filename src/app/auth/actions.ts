@@ -1,10 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { loginSchema, passwordSchema, recoverySchema } from "@/lib/validation/auth";
 import { safeInternalRedirect } from "@/lib/auth/routes";
+import { getConfiguredAppOrigin } from "@/lib/auth/app-url";
 import { log } from "@/lib/observability/logger";
 
 export type AuthActionState = { status: "idle" | "error" | "success"; message?: string; fieldErrors?: Record<string, string[]> };
@@ -34,14 +34,12 @@ export async function requestPasswordRecovery(_: AuthActionState, formData: Form
   const parsed = recoverySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { status: "error", message: "Informe um e-mail válido.", fieldErrors: parsed.error.flatten().fieldErrors };
 
-  // Em produção o destino do link vem apenas da configuração (evita injeção de Host/Origin).
-  const requestHeaders = await headers();
-  const configured = process.env.NEXT_PUBLIC_APP_URL;
-  if (!configured && process.env.NODE_ENV === "production") {
-    log("error", "auth.login_failed", { reason: "recovery_app_url_missing" });
-    return { status: "error", message: "Recuperação de senha indisponível. Procure o administrador." };
+  // Destino do link somente da configuração (HTTPS, ou HTTP local): evita injeção de Host/Origin.
+  const origin = getConfiguredAppOrigin();
+  if (!origin) {
+    log("error", "config.invalid", { missing: "NEXT_PUBLIC_APP_URL", context: "password_recovery" });
+    return { status: "error", message: "A recuperação de senha está temporariamente indisponível." };
   }
-  const origin = configured || requestHeaders.get("origin") || "http://localhost:3000";
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo: `${origin}/auth/callback?next=/atualizar-senha` });
 

@@ -1,60 +1,60 @@
 {
-  "medidoEm": "2026-09-23T11:03:01.297Z",
+  "medidoEm": "2026-09-23T11:32:41.031Z",
   "ambiente": "local: next start (build de produção) + PostgreSQL/GoTrue/PostgREST locais, Chromium headless, sem latência de rede",
   "amostrasPorPagina": 5,
   "paginasComCache": {
     "/dashboard": {
-      "ttfbMs": 99,
-      "domContentLoadedMs": 187,
-      "loadMs": 199
+      "ttfbMs": 86,
+      "domContentLoadedMs": 168,
+      "loadMs": 178
     },
     "/studio": {
-      "ttfbMs": 66,
-      "domContentLoadedMs": 131,
-      "loadMs": 164
+      "ttfbMs": 88,
+      "domContentLoadedMs": 152,
+      "loadMs": 196
     },
     "/biblioteca": {
-      "ttfbMs": 86,
-      "domContentLoadedMs": 144,
-      "loadMs": 175
+      "ttfbMs": 73,
+      "domContentLoadedMs": 154,
+      "loadMs": 165
     },
     "/gestao-editorial": {
-      "ttfbMs": 81,
-      "domContentLoadedMs": 151,
-      "loadMs": 162
+      "ttfbMs": 73,
+      "domContentLoadedMs": 142,
+      "loadMs": 152
     },
     "/publicacoes": {
-      "ttfbMs": 78,
-      "domContentLoadedMs": 164,
-      "loadMs": 180
+      "ttfbMs": 81,
+      "domContentLoadedMs": 160,
+      "loadMs": 173
     },
     "/modelos": {
-      "ttfbMs": 55,
-      "domContentLoadedMs": 138,
-      "loadMs": 148
+      "ttfbMs": 65,
+      "domContentLoadedMs": 135,
+      "loadMs": 144
     },
     "/administracao": {
-      "ttfbMs": 75,
-      "domContentLoadedMs": 126,
-      "loadMs": 148
+      "ttfbMs": 80,
+      "domContentLoadedMs": 146,
+      "loadMs": 155
     }
   },
   "cacheVazio": {
     "/login": {
       "transferKb": 152,
-      "loadMs": 189
+      "loadMs": 258
     },
     "/dashboard": {
       "transferKb": 181,
-      "loadMs": 264
+      "loadMs": 232
     },
     "/studio/editor/:id": {
-      "transferKb": 447,
-      "loadMs": 302
+      "transferKb": 446,
+      "loadMs": 320
     }
   },
   "apiHealthMs": {
     "mediana": 5,
-    "max": 19
+    "max": 17
   }
 }

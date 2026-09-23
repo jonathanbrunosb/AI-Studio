@@ -1,0 +1,4 @@
+-- Marcador de compatibilidade do histórico do ambiente AI-Studio.
+-- O primeiro administrador foi provisionado diretamente no projeto existente.
+-- Ambientes novos devem seguir o procedimento documentado no README e nunca
+-- criar contas ou privilégios com identificadores fixos em uma migração portátil.

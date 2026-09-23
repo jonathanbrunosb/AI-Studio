@@ -42,7 +42,7 @@ Exceção consciente: `style-src 'unsafe-inline'` permanece (estilos inline de R
 | `/api/ai/*` | Sessão + papel editorial + dono do conteúdo; cota atômica no banco; validação de modelo/parâmetros; download apenas de hosts permitidos, com limite de tamanho e verificação de formato |
 | `/api/publications/[id]/package` | Sessão + RLS + transição autorizada; verificação do SHA-256 armazenado antes de entregar |
 | `/api/integrations/portal/v1/*` | Token Bearer (armazenado como SHA-256), escopos, revogação, limite de 60 req/min por cliente, `WWW-Authenticate` |
-| `/api/health` | Público; retorna apenas `status` e `time` |
+| `/api/health` | Público; retorna apenas `status`, `service` e `timestamp` (503 sem configuração) |
 
 ## 5. Dados, Storage e segredos
 

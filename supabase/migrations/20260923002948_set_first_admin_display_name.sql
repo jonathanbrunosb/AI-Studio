@@ -1,0 +1,3 @@
+-- Marcador de compatibilidade do histórico do ambiente AI-Studio.
+-- A atualização do nome do primeiro administrador foi específica do ambiente.
+-- Nenhum dado pessoal é reproduzido por esta migração portátil.

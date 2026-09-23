@@ -1,0 +1,3 @@
+-- Marcador de compatibilidade do histórico do projeto Supabase AI-Studio.
+-- Os grants intermediários foram revertidos por 20260923001244. Os grants vigentes
+-- são definidos por 20260923001321.

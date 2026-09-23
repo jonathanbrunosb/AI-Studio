@@ -1,0 +1,3 @@
+-- Marcador de compatibilidade do histórico do projeto Supabase AI-Studio.
+-- O hardening intermediário foi revertido por 20260923001244. O esquema definitivo
+-- e suas políticas são criados por 20260923001321.

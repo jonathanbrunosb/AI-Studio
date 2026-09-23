@@ -95,7 +95,7 @@ Classificação da especificação: *Implementado e validado*, *Implementado com
 
 ## D. Banco de dados
 
-- **10 migrações versionadas.** No Supabase de produção (`idrseyhwkhlvedfgzecb`) foram aplicadas nesta sprint `sprint_8_hardening` e `sprint_8_audit_governance`. Ambas são aditivas e não destrutivas. A base de produção tinha 0 conteúdos e 1 usuário.
+- **15 arquivos de migração** (10 com esquema e 5 marcadores de histórico), com nomes idênticos às versões registradas em produção. No Supabase de produção (`idrseyhwkhlvedfgzecb`) foram aplicadas nesta sprint `sprint_8_hardening` e `sprint_8_audit_governance`. Ambas são aditivas e não destrutivas. A base de produção tinha 0 conteúdos e 1 usuário.
 - **RLS** habilitado em todas as tabelas públicas, sem concessões a `anon`. Grants conferidos diretamente em produção, por exemplo em `audit_logs`: `service_role` tem só `INSERT`/`SELECT`, e `authenticated` só `SELECT`.
 - **Testes SQL** (`npm run test:sql`) — **8/8 aprovados** em banco descartável:
   - isolamento por usuário;
@@ -184,7 +184,7 @@ Os processos essenciais estão funcionando e comprovados por testes automatizado
 |---|---|---|
 | Autenticação | ✅ Validado | `auth`, `permissions` |
 | Controle de acesso | ✅ Validado | `permissions`, `journey-editorial` |
-| Banco de dados | ✅ Validado | 10 migrações; 8 suítes SQL; produção conferida |
+| Banco de dados | ✅ Validado | 15 arquivos de migração alinhados com produção; 8 suítes SQL; produção conferida |
 | RLS | ✅ Validado | Testes SQL e E2E via PostgREST real |
 | Storage | ⚠️ Parcial | Buckets privados em produção e políticas testadas em SQL; no E2E o Storage é simulado |
 | Editor visual | ✅ Validado | Criação, edição, salvamento, reabertura e exportação 1080×1080 |

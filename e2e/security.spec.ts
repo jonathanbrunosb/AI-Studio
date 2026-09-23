@@ -26,7 +26,7 @@ test.describe("proteção de rotas e APIs sem autenticação", () => {
   test("health check público sem dados sensíveis", async ({ request }) => {
     const response = await request.get("/api/health");
     expect(response.status()).toBe(200);
-    expect(Object.keys(await response.json()).sort()).toEqual(["status", "time"]);
+    expect(Object.keys(await response.json()).sort()).toEqual(["service", "status", "timestamp"]);
   });
 });
 

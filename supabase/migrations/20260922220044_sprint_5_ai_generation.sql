@@ -1,0 +1,5 @@
+-- Marcador de compatibilidade do histórico do projeto Supabase AI-Studio.
+-- Esta versão intermediária foi aplicada diretamente no ambiente em 22/09/2026,
+-- depois revertida por 20260923001244 e substituída por 20260923001321.
+-- O arquivo é deliberadamente vazio para que ambientes novos reproduzam somente
+-- o esquema definitivo, mantendo o alinhamento de versões com o ambiente existente.

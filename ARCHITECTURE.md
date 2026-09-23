@@ -38,7 +38,7 @@ Next.js 16 (Railway, 1 serviço Node)
 
 ## 3. Modelo de dados (PostgreSQL)
 
-Migrações versionadas em `supabase/migrations` (10 arquivos, aplicadas em ordem). Principais entidades:
+Migrações versionadas em `supabase/migrations` (15 arquivos com nomes iguais às versões registradas no Supabase, incluindo 5 marcadores de histórico vazios; aplicados em ordem). Principais entidades:
 
 - `profiles`, `user_roles` (papéis: `admin`, `editor`, `approver`).
 - `contents` (status: `draft` → `in_review` → `changes_requested`/`approved` → `published`; `archived`), `content_versions` (`working`, `checkpoint`, `review`, versões aprovadas imutáveis), `approval_events`.
