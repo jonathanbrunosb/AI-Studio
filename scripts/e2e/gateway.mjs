@@ -37,7 +37,7 @@ async function storage(req, res) {
     if (!files.has(key)) return json(res, 404, { statusCode: "404", error: "not_found", message: "Object not found" });
     return json(res, 200, { signedURL: `/object/sign/${match[1]}/${encodeURI(match[2])}?token=e2e` });
   }
-  if (req.method === "GET" && (match = path.match(/^\/object\/(?:sign|authenticated|public)\/([^/]+)\/(.+)$/))) {
+  if (req.method === "GET" && (match = (path.match(/^\/object\/(?:sign|authenticated|public)\/([^/]+)\/(.+)$/) || path.match(/^\/object\/(?!sign\/|list\/|info\/)([^/]+)\/(.+)$/)))) {
     const file = files.get(`${match[1]}/${match[2]}`);
     if (!file) return json(res, 404, { error: "not_found" });
     cors(res); res.writeHead(200, { "Content-Type": file.type }); return res.end(file.data);

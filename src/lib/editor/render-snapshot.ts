@@ -12,9 +12,18 @@ export async function renderSnapshotPng(snapshot: unknown): Promise<{ blob: Blob
   try {
     await canvas.loadFromJSON({ objects: project.elements ?? [] });
     canvas.renderAll();
-    const blob = await (await fetch(canvas.toDataURL({ format: "png", multiplier: 1, enableRetinaScaling: false }))).blob();
+    // Decodificação local do data URL: fetch("data:…") é bloqueado pela CSP (connect-src sem data:).
+    const blob = dataUrlToBlob(canvas.toDataURL({ format: "png", multiplier: 1, enableRetinaScaling: false }));
     return { blob, width, height };
   } finally {
     void canvas.dispose();
   }
+}
+
+function dataUrlToBlob(dataUrl: string) {
+  const [header, base64] = dataUrl.split(",", 2);
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return new Blob([bytes], { type: header.match(/^data:([^;]+)/)?.[1] ?? "image/png" });
 }

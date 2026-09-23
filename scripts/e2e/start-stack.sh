@@ -72,6 +72,9 @@ insert into public.user_roles (user_id, role) values ('$EDITOR','editor'), ('$AP
 update public.profiles set is_active = false where id = '$INACTIVE';
 SQL
 
+# Chave ECDSA P-256 efêmera, gerada a cada execução, somente para assinar pacotes nos testes E2E.
+SIGNING_ENV="$(node -e 'const c=require("crypto");const {privateKey,publicKey}=c.generateKeyPairSync("ec",{namedCurve:"prime256v1"});const pem=privateKey.export({type:"pkcs8",format:"pem"}).trim().split("\n").join("\\n");console.log("PORTAL_SIGNING_PRIVATE_KEY=\x27"+pem+"\x27");console.log("E2E_PORTAL_PUBLIC_KEY="+publicKey.export({type:"spki",format:"der"}).toString("base64"))')"
+
 cat >"$ROOT/.env.e2e" <<ENV
 NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY
@@ -81,5 +84,6 @@ E2E_DB_URL=$DB_URL
 E2E_MODE=true
 E2E_FAL_BASE_URL=http://127.0.0.1:54400
 FAL_KEY=e2e-simulated-key-not-real
+$SIGNING_ENV
 ENV
 echo "E2E stack pronto (DB $DB). Variáveis em .env.e2e"

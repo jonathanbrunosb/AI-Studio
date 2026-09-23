@@ -1,17 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { loginAs, sql, sqlAsUser, unique, users, writeAsUser } from "./helpers";
-import { createCommunique, openEditor, openEditorAndPersist, waitSaved } from "./journeys";
+import { createCommunique, openEditor, openEditorAndPersist, submitForReview as submitWith, waitSaved } from "./journeys";
+
+const submitForReview = (page: Page, contentId: string) => submitWith(page, contentId, sql);
 
 const status = (id: string) => sql(`select status from contents where id='${id}'`);
-
-async function submitForReview(page: Page, contentId: string) {
-  await page.goto(`/studio?id=${contentId}&submit=1`);
-  const dialog = page.getByRole("dialog", { name: "Enviar para aprovação" });
-  await expect(dialog.getByRole("option", { name: "Aprovador E2E" })).toBeAttached();
-  await dialog.getByRole("button", { name: "Confirmar envio" }).click();
-  await expect(page).toHaveURL(/submitted=1/);
-  await expect.poll(() => status(contentId)).toBe("in_review");
-}
 
 test("fluxo editorial completo: envio, ajustes, reenvio, aprovação e bloqueio da versão", async ({ page }) => {
   // 1. Autor cria, edita (salvamento automático) e envia.

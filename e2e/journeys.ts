@@ -34,3 +34,21 @@ export async function openEditorAndPersist(page: Page, contentId: string, sqlQue
   await expect.poll(() => sqlQuery(`select count(*) from content_versions where content_id='${contentId}' and version_kind='working'`), { timeout: 20_000 }).toBe("1");
   await waitSaved(page);
 }
+
+/** Envia o conteúdo para aprovação pelo diálogo real (usuário logado deve ser o autor). */
+export async function submitForReview(page: Page, contentId: string, sqlQuery: (query: string) => string) {
+  await page.goto(`/studio?id=${contentId}&submit=1`);
+  const dialog = page.getByRole("dialog", { name: "Enviar para aprovação" });
+  await expect(dialog.getByRole("option", { name: "Aprovador E2E" })).toBeAttached();
+  await dialog.getByRole("button", { name: "Confirmar envio" }).click();
+  await expect(page).toHaveURL(/submitted=1/);
+  await expect.poll(() => sqlQuery(`select status from contents where id='${contentId}'`)).toBe("in_review");
+}
+
+/** Decide a revisão como aprovador pela tela de revisão (usuário logado deve ser aprovador distinto do autor). */
+export async function approveAsReviewer(page: Page, contentId: string, sqlQuery: (query: string) => string) {
+  await page.goto(`/gestao-editorial/revisao/${contentId}`);
+  await page.getByRole("button", { name: "Aprovar conteúdo" }).click();
+  await page.getByRole("button", { name: "Confirmar" }).click();
+  await expect.poll(() => sqlQuery(`select status from contents where id='${contentId}'`)).toBe("approved");
+}
