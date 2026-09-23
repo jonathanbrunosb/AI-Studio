@@ -1,0 +1,94 @@
+{
+  "1920x1080": {
+    "/dashboard": {
+      "overflowPx": 0
+    },
+    "/studio": {
+      "overflowPx": 0
+    },
+    "/biblioteca": {
+      "overflowPx": 0
+    },
+    "/gestao-editorial": {
+      "overflowPx": 0
+    },
+    "/publicacoes": {
+      "overflowPx": 0
+    },
+    "/modelos": {
+      "overflowPx": 0
+    },
+    "/studio/editor/:id": {
+      "overflowPx": 0
+    }
+  },
+  "1366x768": {
+    "/dashboard": {
+      "overflowPx": 0
+    },
+    "/studio": {
+      "overflowPx": 0
+    },
+    "/biblioteca": {
+      "overflowPx": 0
+    },
+    "/gestao-editorial": {
+      "overflowPx": 0
+    },
+    "/publicacoes": {
+      "overflowPx": 0
+    },
+    "/modelos": {
+      "overflowPx": 0
+    },
+    "/studio/editor/:id": {
+      "overflowPx": 0
+    }
+  },
+  "768x1024": {
+    "/dashboard": {
+      "overflowPx": 0
+    },
+    "/studio": {
+      "overflowPx": 0
+    },
+    "/biblioteca": {
+      "overflowPx": 0
+    },
+    "/gestao-editorial": {
+      "overflowPx": 0
+    },
+    "/publicacoes": {
+      "overflowPx": 0
+    },
+    "/modelos": {
+      "overflowPx": 0
+    },
+    "/studio/editor/:id": {
+      "overflowPx": 0
+    }
+  },
+  "390x844": {
+    "/dashboard": {
+      "overflowPx": 0
+    },
+    "/studio": {
+      "overflowPx": 0
+    },
+    "/biblioteca": {
+      "overflowPx": 0
+    },
+    "/gestao-editorial": {
+      "overflowPx": 0
+    },
+    "/publicacoes": {
+      "overflowPx": 0
+    },
+    "/modelos": {
+      "overflowPx": 0
+    },
+    "/studio/editor/:id": {
+      "overflowPx": 0
+    }
+  }
+}

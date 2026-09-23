@@ -22,7 +22,7 @@ export function ProjectPreview({ snapshot, className = "", zoomable = false, lab
     let cancelled = false;
     async function render() {
       if (!project?.elements) { setFailed(true); return; }
-      const { StaticCanvas } = await import("fabric");
+      const [{ StaticCanvas }] = await Promise.all([import("fabric"), import("@/lib/editor/fabric-setup")]);
       const element = document.createElement("canvas");
       const canvas = new StaticCanvas(element, { width, height, backgroundColor: project.canvas?.backgroundColor ?? "#ffffff", enableRetinaScaling: false });
       try {

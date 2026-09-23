@@ -1,6 +1,12 @@
 import { log } from "@/lib/observability/logger";
 
-export function register() {}
+export async function register() {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  const { checkEnvironment } = await import("@/lib/config/env-check");
+  const result = checkEnvironment();
+  if (result.missing.length || result.problems.length) log("error", "config.invalid", { missing: result.missing.join(","), problems: result.problems.join("; ") });
+  if (result.disabledFeatures.length) log("warn", "config.feature_disabled", { variables: result.disabledFeatures.join(",") });
+}
 
 /** Erros não tratados em renderização, Server Actions e Route Handlers, sem dados sensíveis. */
 export function onRequestError(error: unknown, request: { path: string; method: string; headers: Record<string, string | string[] | undefined> }, context: { routerKind: string; routeType: string }) {

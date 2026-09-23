@@ -11,14 +11,20 @@ PG_HOSTPORT="$(echo "$PG_ADMIN_URL" | sed -E 's#^postgres(ql)?://[^@]+@([^/]+)/.
 export E2E_JWT_SECRET="${E2E_JWT_SECRET:-e2e-local-jwt-secret-with-at-least-32-characters}"
 GOTRUE_VERSION=v2.177.0
 POSTGREST_VERSION=v12.2.12
+# SHA-256 fixados na primeira obtenção (TOFU). Alterar a versão exige atualizar o hash conscientemente.
+GOTRUE_SHA256=fa48b1c1df11576c87b23e7f189ac6f01cd95265244eed7ff8a4e647858a0428
+POSTGREST_SHA256=5de4092f1719da3353c40bf96c8dec6913f2254a7cd0b61cc05f233153b557d5
 mkdir -p "$CACHE"
+verify() { echo "$2  $1" | sha256sum -c --quiet - || { echo "Hash SHA-256 divergente: $1" >&2; rm -f "$1"; exit 1; }; }
 
 if [ ! -x "$CACHE/gotrue/auth" ]; then
   curl -fsSL "https://github.com/supabase/auth/releases/download/$GOTRUE_VERSION/auth-$GOTRUE_VERSION-x86.tar.gz" -o "$CACHE/auth.tgz"
+  verify "$CACHE/auth.tgz" "$GOTRUE_SHA256"
   mkdir -p "$CACHE/gotrue" && tar xzf "$CACHE/auth.tgz" -C "$CACHE/gotrue"
 fi
 if [ ! -x "$CACHE/postgrest" ]; then
   curl -fsSL "https://github.com/PostgREST/postgrest/releases/download/$POSTGREST_VERSION/postgrest-$POSTGREST_VERSION-linux-static-x86-64.tar.xz" -o "$CACHE/postgrest.tar.xz"
+  verify "$CACHE/postgrest.tar.xz" "$POSTGREST_SHA256"
   tar xf "$CACHE/postgrest.tar.xz" -C "$CACHE"
 fi
 

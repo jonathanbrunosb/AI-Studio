@@ -20,6 +20,8 @@ test("editor cria comunicado, personaliza a composição, salva e reabre com per
   await expect.poll(() => Number(sql(`select jsonb_array_length(snapshot->'elements') from content_versions where content_id='${contentId}' and version_kind='working'`)), { timeout: 20_000 }).toBe(before + 2);
   await waitSaved(page);
   console.log(`elementos antes=${before} depois=${before + 2}`);
+  // Regressão Fabric 7: todos os elementos criados pelo AI Studio usam origem no canto superior esquerdo.
+  expect(sql(`select string_agg(distinct (e->>'originX') || '/' || (e->>'originY'), ',') from content_versions v, jsonb_array_elements(v.snapshot->'elements') e where v.content_id='${contentId}' and v.version_kind='working'`)).toBe("left/top");
   expect(sql(`select snapshot->'canvas'->>'width' || 'x' || (snapshot->'canvas'->>'height') from content_versions where content_id='${contentId}' and version_kind='working'`)).toBe("1080x1080");
 
   // Reabrir: composição e dados editoriais preservados.

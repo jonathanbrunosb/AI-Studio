@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, tipos, testes unitários e build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high --omit=dev
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build de produção (variáveis fictícias, sem acesso a serviços reais)
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+
+  sql:
+    name: Migrações e testes SQL (RLS, funções, triggers)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - run: bash scripts/run-sql-tests.sh
+        env:
+          PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
+
+  e2e:
+    name: E2E (Playwright, pilha local com Auth/RLS reais e IA simulada)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    needs: [quality, sql]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/postgres
+      PORTAL_REPO: ${{ github.workspace }}/portal-contabilidade
+    steps:
+      - uses: actions/checkout@v4
+      # Módulo de importação do portal (validação do pacote). Se indisponível, a jornada de publicação é ignorada e registrada.
+      - uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: jonathanbrunosb/portal-contabilidade
+          path: portal-contabilidade
+          sparse-checkout: js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .e2e-cache/gotrue
+            .e2e-cache/postgrest
+          key: e2e-binaries-${{ hashFiles('scripts/e2e/start-stack.sh') }}
+      - run: bash scripts/e2e/start-stack.sh
+      - run: bash scripts/e2e/start-app.sh
+      - run: npx playwright test
+      - name: Logs da pilha em caso de falha
+        if: failure()
+        run: tail -n 80 .e2e-cache/*.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-evidencias
+          path: |
+            test-results/
+            docs/evidencias/
+          retention-days: 14

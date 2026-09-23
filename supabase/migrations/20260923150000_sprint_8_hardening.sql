@@ -57,7 +57,6 @@ create policy ai_user_limits_admin_update on public.ai_user_limits for update to
 drop policy if exists ai_user_limits_admin_delete on public.ai_user_limits;
 create policy ai_user_limits_admin_delete on public.ai_user_limits for delete to authenticated using (app_private.has_role('admin'));
 
-commit;
 
 -- ---------------------------------------------------------------------------
 -- 4. list_eligible_reviewers: a coluna de saída "id" conflitava com contents.id
@@ -108,3 +107,5 @@ as $$
 $$;
 revoke all on function public.claim_generation_finalize(uuid, integer) from public, anon, authenticated;
 grant execute on function public.claim_generation_finalize(uuid, integer) to service_role;
+
+commit;

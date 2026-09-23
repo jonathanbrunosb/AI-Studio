@@ -7,7 +7,7 @@ export async function renderSnapshotPng(snapshot: unknown): Promise<{ blob: Blob
   const project = snapshot as Snapshot;
   const width = Number(project.canvas?.width) || 1080;
   const height = Number(project.canvas?.height) || 1080;
-  const { StaticCanvas } = await import("fabric");
+  const [{ StaticCanvas }] = await Promise.all([import("fabric"), import("@/lib/editor/fabric-setup")]);
   const canvas = new StaticCanvas(document.createElement("canvas"), { width, height, backgroundColor: project.canvas?.backgroundColor ?? "#ffffff", enableRetinaScaling: false });
   try {
     await canvas.loadFromJSON({ objects: project.elements ?? [] });
