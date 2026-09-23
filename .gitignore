@@ -12,3 +12,4 @@ supabase/.temp/
 .env.e2e
 test-results/
 playwright-report/
+.sql-test.log

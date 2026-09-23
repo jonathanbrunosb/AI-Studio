@@ -27,3 +27,10 @@ export async function layerNames(page: Page) {
   await page.getByRole("button", { name: "Camadas" }).click();
   return page.locator("aside .rounded-xl.border").allInnerTexts();
 }
+
+/** Abre o editor e aguarda a primeira gravação da composição inicial no banco (salvamento automático). */
+export async function openEditorAndPersist(page: Page, contentId: string, sqlQuery: (query: string) => string) {
+  await openEditor(page, contentId);
+  await expect.poll(() => sqlQuery(`select count(*) from content_versions where content_id='${contentId}' and version_kind='working'`), { timeout: 20_000 }).toBe("1");
+  await waitSaved(page);
+}

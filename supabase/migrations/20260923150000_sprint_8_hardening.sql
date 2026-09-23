@@ -34,18 +34,55 @@ create index if not exists generation_jobs_parent_idx on public.generation_jobs 
 
 -- 3) Políticas administrativas "for all" duplicavam a política de SELECT (advisor multiple_permissive_policies).
 drop policy if exists portal_destinations_admin on public.portal_destinations;
+drop policy if exists portal_destinations_admin_insert on public.portal_destinations;
 create policy portal_destinations_admin_insert on public.portal_destinations for insert to authenticated with check (app_private.has_role('admin'));
+drop policy if exists portal_destinations_admin_update on public.portal_destinations;
 create policy portal_destinations_admin_update on public.portal_destinations for update to authenticated using (app_private.has_role('admin')) with check (app_private.has_role('admin'));
+drop policy if exists portal_destinations_admin_delete on public.portal_destinations;
 create policy portal_destinations_admin_delete on public.portal_destinations for delete to authenticated using (app_private.has_role('admin'));
 
 drop policy if exists category_destinations_admin on public.content_category_destinations;
+drop policy if exists category_destinations_admin_insert on public.content_category_destinations;
 create policy category_destinations_admin_insert on public.content_category_destinations for insert to authenticated with check (app_private.has_role('admin'));
+drop policy if exists category_destinations_admin_update on public.content_category_destinations;
 create policy category_destinations_admin_update on public.content_category_destinations for update to authenticated using (app_private.has_role('admin')) with check (app_private.has_role('admin'));
+drop policy if exists category_destinations_admin_delete on public.content_category_destinations;
 create policy category_destinations_admin_delete on public.content_category_destinations for delete to authenticated using (app_private.has_role('admin'));
 
 drop policy if exists ai_user_limits_write_admin on public.ai_user_limits;
+drop policy if exists ai_user_limits_admin_insert on public.ai_user_limits;
 create policy ai_user_limits_admin_insert on public.ai_user_limits for insert to authenticated with check (app_private.has_role('admin'));
+drop policy if exists ai_user_limits_admin_update on public.ai_user_limits;
 create policy ai_user_limits_admin_update on public.ai_user_limits for update to authenticated using (app_private.has_role('admin')) with check (app_private.has_role('admin'));
+drop policy if exists ai_user_limits_admin_delete on public.ai_user_limits;
 create policy ai_user_limits_admin_delete on public.ai_user_limits for delete to authenticated using (app_private.has_role('admin'));
 
 commit;
+
+-- ---------------------------------------------------------------------------
+-- 4. list_eligible_reviewers: a coluna de saída "id" conflitava com contents.id
+--    ("column reference id is ambiguous"), impedindo o envio para aprovação pela interface.
+-- ---------------------------------------------------------------------------
+create or replace function public.list_eligible_reviewers(p_content_id uuid)
+returns table (id uuid, full_name text, email text)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  owner uuid;
+begin
+  if not app_private.is_active_user() then raise exception 'NOT_AUTHENTICATED' using errcode = '42501'; end if;
+  select c.created_by into owner from public.contents c where c.id = p_content_id;
+  if owner is null or not app_private.can_view_content(p_content_id) then
+    raise exception 'CONTENT_NOT_FOUND' using errcode = 'P0002';
+  end if;
+  return query
+    select p.id, p.full_name, p.email from public.profiles p
+    where app_private.is_eligible_reviewer(p.id, owner, (select auth.uid()))
+    order by p.full_name;
+end;
+$$;
+revoke all on function public.list_eligible_reviewers(uuid) from public, anon;
+grant execute on function public.list_eligible_reviewers(uuid) to authenticated;
