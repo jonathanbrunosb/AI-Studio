@@ -6,3 +6,9 @@ out
 npm-debug.log*
 *.tsbuildinfo
 supabase/.temp/
+
+# E2E local
+.e2e-cache/
+.env.e2e
+test-results/
+playwright-report/

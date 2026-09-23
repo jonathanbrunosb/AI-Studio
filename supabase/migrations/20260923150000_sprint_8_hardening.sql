@@ -1,0 +1,51 @@
+-- Sprint 8: correções identificadas nos testes integrados e nos advisors do Supabase.
+begin;
+
+-- 1) BUG CRÍTICO: INSERT ... RETURNING em contents violava o RLS.
+-- A política de leitura consultava a própria tabela por id (can_view_content), e a linha recém-inserida
+-- não é visível para essa consulta dentro do mesmo comando. Resultado: criar e duplicar conteúdos falhava.
+-- A nova política avalia as colunas da própria linha, com a mesma regra de can_view_content (Sprint 6).
+drop policy if exists contents_select_authorized on public.contents;
+create policy contents_select_authorized
+on public.contents for select to authenticated
+using (
+  app_private.is_active_user()
+  and (
+    app_private.has_role('admin')
+    or created_by = (select auth.uid())
+    or status in ('approved', 'published')
+    or (status = 'in_review' and app_private.has_role('approver'))
+    or assigned_reviewer_id = (select auth.uid())
+    or (app_private.has_role('approver') and exists (
+      select 1 from public.approval_events e
+      where e.content_id = contents.id and e.actor_id = (select auth.uid())
+    ))
+  )
+);
+
+-- 2) Índices para chaves estrangeiras usadas em filtros e junções frequentes.
+create index if not exists contents_approved_version_idx on public.contents (approved_version_id) where approved_version_id is not null;
+create index if not exists contents_submitted_version_idx on public.contents (submitted_version_id) where submitted_version_id is not null;
+create index if not exists publication_events_content_idx on public.publication_events (content_id, created_at desc);
+create index if not exists publication_exports_destination_idx on public.publication_exports (destination);
+create index if not exists notifications_content_idx on public.notifications (content_id) where content_id is not null;
+create index if not exists content_category_destinations_destination_idx on public.content_category_destinations (destination_id);
+create index if not exists generation_jobs_parent_idx on public.generation_jobs (parent_job_id) where parent_job_id is not null;
+
+-- 3) Políticas administrativas "for all" duplicavam a política de SELECT (advisor multiple_permissive_policies).
+drop policy if exists portal_destinations_admin on public.portal_destinations;
+create policy portal_destinations_admin_insert on public.portal_destinations for insert to authenticated with check (app_private.has_role('admin'));
+create policy portal_destinations_admin_update on public.portal_destinations for update to authenticated using (app_private.has_role('admin')) with check (app_private.has_role('admin'));
+create policy portal_destinations_admin_delete on public.portal_destinations for delete to authenticated using (app_private.has_role('admin'));
+
+drop policy if exists category_destinations_admin on public.content_category_destinations;
+create policy category_destinations_admin_insert on public.content_category_destinations for insert to authenticated with check (app_private.has_role('admin'));
+create policy category_destinations_admin_update on public.content_category_destinations for update to authenticated using (app_private.has_role('admin')) with check (app_private.has_role('admin'));
+create policy category_destinations_admin_delete on public.content_category_destinations for delete to authenticated using (app_private.has_role('admin'));
+
+drop policy if exists ai_user_limits_write_admin on public.ai_user_limits;
+create policy ai_user_limits_admin_insert on public.ai_user_limits for insert to authenticated with check (app_private.has_role('admin'));
+create policy ai_user_limits_admin_update on public.ai_user_limits for update to authenticated using (app_private.has_role('admin')) with check (app_private.has_role('admin'));
+create policy ai_user_limits_admin_delete on public.ai_user_limits for delete to authenticated using (app_private.has_role('admin'));
+
+commit;

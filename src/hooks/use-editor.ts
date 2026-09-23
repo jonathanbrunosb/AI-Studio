@@ -93,7 +93,9 @@ export function useEditor(initialProject: EditorProject, seed: EditorSeed, onPro
   }, [history, onProjectChange, readLayers, readSelected]);
 
   const seedCanvas = useCallback((canvas: Canvas, project: EditorProject) => {
-    const [bar, title, subtitle, body, footer] = getInitialSeedElements(seed, project.canvas.width, project.canvas.height);
+    // `type` é somente leitura no Fabric 7: repassá-lo ao construtor lança exceção e interrompe a inicialização.
+    const [bar, title, subtitle, body, footer] = getInitialSeedElements(seed, project.canvas.width, project.canvas.height)
+      .map((element) => Object.fromEntries(Object.entries(element).filter(([key]) => key !== "type")));
     const objects = [
       decorate(new Rect(bar), String(bar.name), "brand"),
       decorate(new Textbox(String(title.text), title), String(title.name), "title"),

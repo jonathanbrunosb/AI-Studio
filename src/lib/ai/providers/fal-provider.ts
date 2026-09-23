@@ -1,4 +1,5 @@
 import { dimensionsFor } from "../utils/image-processing";
+import { e2eFalBaseUrl } from "./test-mode";
 import {
   ProviderError, type CancelOutcome, type ImageGenerationProvider, type ProviderRequestRef,
   type ProviderResult, type ProviderStatus, type ProviderSubmitRequest,
@@ -10,6 +11,7 @@ import {
  */
 const QUEUE_BASE = "https://queue.fal.run";
 const allowedApiHosts = ["queue.fal.run"];
+const queueBase = () => e2eFalBaseUrl() ?? QUEUE_BASE;
 
 type FetchLike = typeof fetch;
 
@@ -18,6 +20,8 @@ export type FalProviderOptions = { apiKey?: string; fetchImpl?: FetchLike; timeo
 export function isAllowedFalHost(rawUrl: string, hosts = allowedApiHosts) {
   try {
     const url = new URL(rawUrl);
+    const testBase = e2eFalBaseUrl();
+    if (testBase && url.origin === testBase) return true;
     return url.protocol === "https:" && hosts.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
   } catch {
     return false;
@@ -59,7 +63,7 @@ export class FalImageProvider implements ImageGenerationProvider {
   }
 
   async submit(request: ProviderSubmitRequest): Promise<ProviderRequestRef> {
-    const body = await this.call(`${QUEUE_BASE}/${request.model.id}`, { method: "POST", body: JSON.stringify(this.buildInput(request)) });
+    const body = await this.call(`${queueBase()}/${request.model.id}`, { method: "POST", body: JSON.stringify(this.buildInput(request)) });
     const data = body as { request_id?: string; status_url?: string; response_url?: string; cancel_url?: string };
     if (!data.request_id) throw new ProviderError("provider_error", "O provedor não retornou o identificador da solicitação.");
     return {
@@ -102,7 +106,7 @@ export class FalImageProvider implements ImageGenerationProvider {
     if (given && isAllowedFalHost(given)) return given;
     // Fallback documentado: rotas de status usam o id do app (owner/app), sem subcaminho.
     const appId = ref.modelId.split("/").slice(0, 2).join("/");
-    const base = `${QUEUE_BASE}/${appId}/requests/${encodeURIComponent(ref.externalId)}`;
+    const base = `${queueBase()}/${appId}/requests/${encodeURIComponent(ref.externalId)}`;
     return kind === "status" ? `${base}/status` : kind === "cancel" ? `${base}/cancel` : base;
   }
 

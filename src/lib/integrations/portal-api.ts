@@ -2,6 +2,7 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRateLimiter } from "./rate-limit";
+import { log } from "@/lib/observability/logger";
 
 export const API_VERSION = "2026-09-v1";
 const limiter = createRateLimiter(60, 60_000);
@@ -17,6 +18,7 @@ export function generateClientToken() {
 }
 
 export function apiError(status: number, code: string, message: string, extra: Record<string, string> = {}) {
+  if (status >= 400) log(status >= 500 ? "error" : "warn", "integration.request_rejected", { status, code });
   return Response.json({ api_version: API_VERSION, error: { code, message } }, { status, headers: { "Cache-Control": "no-store", ...extra } });
 }
 

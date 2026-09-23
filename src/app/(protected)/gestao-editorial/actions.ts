@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/authorization";
 import { workflowErrorMessage } from "@/lib/editorial/workflow-rules";
+import { log } from "@/lib/observability/logger";
 
 export type WorkflowResult = { ok: boolean; message: string; stateChanged?: boolean };
 
@@ -13,7 +14,9 @@ function refresh(contentId?: string) {
   revalidatePath("/", "layout");
 }
 
-function failure(error: { message?: string } | null): WorkflowResult {
+function failure(error: { message?: string; code?: string } | null): WorkflowResult {
+  const code = error?.message?.match(/^[A-Z_]{4,}$/)?.[0] ?? error?.code ?? "unknown";
+  log("warn", "editorial.operation_failed", { code });
   const message = workflowErrorMessage(error?.message);
   return { ok: false, message, stateChanged: Boolean(error?.message && /STATE_CHANGED|VERSION_MISMATCH|STALE_COMPOSITION/.test(error.message)) };
 }

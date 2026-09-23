@@ -1,4 +1,5 @@
 import "server-only";
+import { errorName, log } from "@/lib/observability/logger";
 import { getCurrentUserContext } from "@/lib/auth/authorization";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSelectedProvider } from "./providers/selected-provider";
@@ -28,10 +29,13 @@ export async function getGenerationContext() {
 
 export function toErrorResponse(error: unknown) {
   if (error instanceof GenerationError) {
+    if (["provider_error", "invalid_credentials", "storage_error", "not_configured"].includes(error.code)) {
+      log(error.code === "storage_error" ? "error" : "warn", error.code === "storage_error" ? "storage.failed" : "ai.generation_failed", { code: error.code });
+    }
     const status = { forbidden: 403, not_found: 404, quota_exceeded: 429, invalid_request: 400, model_unavailable: 400, reference_blocked: 400, disabled: 503, not_configured: 503, invalid_credentials: 502, provider_error: 502, storage_error: 500 }[error.code];
     return Response.json({ error: error.message, code: error.code }, { status });
   }
   // Sem detalhes internos, prompts ou credenciais no log.
-  console.error("[ai] falha inesperada", error instanceof Error ? error.name : "unknown");
+  log("error", "ai.unexpected", { error: errorName(error) });
   return Response.json({ error: "Falha inesperada no módulo de IA.", code: "internal" }, { status: 500 });
 }
